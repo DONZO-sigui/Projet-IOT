@@ -1,0 +1,264 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-11">
+      <h1 class="text-center section-title display-4 mb-5 text-primary">
+        <i class="bi bi-droplet-fill"></i> Surveillance Qualité de l'Eau pour la santé des poissons
+      </h1>
+
+      <!-- Carte avec plusieurs zones -->
+      <div class="card shadow-lg mb-5">
+        <div class="card-header bg-primary text-white text-center">
+          <h3><i class="bi bi-geo-alt-fill"></i> Zones de Pêche Surveillées</h3>
+        </div>
+        <div class="card-body p-4">
+          <div id="map" style="height: 500px; border-radius: 12px;" class="shadow"></div>
+          <div class="text-center mt-3">
+            <span class="badge bg-success me-3">● Excellente</span>
+            <span class="badge bg-primary me-3">● Bonne</span>
+            <span class="badge bg-warning me-3">● Moyenne</span>
+            <span class="badge bg-danger">● Mauvaise</span>
+          </div>
+          <p class="text-center mt-2 text-muted small" id="current-conditions">
+            Chargement conditions...
+          </p>
+        </div>
+      </div>
+
+      <!-- État actuel + Analyse manuelle -->
+      <div class="card shadow-lg mb-5">
+        <div class="card-header text-white text-center" id="header-quality">
+          <h3>État Actuel - Bassin Principal</h3>
+        </div>
+        <div class="card-body p-5">
+          <div class="row text-center mb-5 g-4">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">pH</label>
+              <input type="number" step="0.1" class="form-control form-control-lg text-center" id="ph-value" value="7.20">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Température (°C)</label>
+              <input type="number" step="0.1" class="form-control form-control-lg text-center" id="temp-value" value="27.5">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Turbidité (NTU)</label>
+              <input type="number" class="form-control form-control-lg text-center" id="turbidite-value" value="22">
+            </div>
+          </div>
+
+          <div class="alert fs-4 text-center" id="ia-alert">
+            <span id="ia-message">Prêt pour analyse</span>
+          </div>
+
+          <div class="text-center mt-4">
+            <button onclick="manualAnalyze()" class="btn btn-primary btn-lg px-5 fw-bold me-3">
+              <i class="bi bi-magic"></i> Analyser avec l'IA (manuel)
+            </button>
+            <button onclick="refreshAllZones()" class="btn btn-outline-secondary btn-lg">
+              <i class="bi bi-arrow-clockwise"></i> Rafraîchir auto
+            </button>
+          </div>
+
+          <p class="text-center text-muted mt-4 small">
+            Mode automatique actif : mise à jour toutes les 12 secondes selon l'heure réelle et la saison
+          </p>
+        </div>
+      </div>
+
+      <!-- Historique avec courbes colorées par zone -->
+      <div class="card shadow-lg">
+        <div class="card-header bg-dark text-white text-center">
+          <h3><i class="bi bi-graph-up-arrow"></i> Historique Qualité par Zone (pH)</h3>
+          <p class="mb-0 text-muted">Chaque ligne = une zone de pêche • Couleur = qualité actuelle</p>
+        </div>
+        <div class="card-body">
+          <canvas id="waterChart" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet + Chart.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Zones de pêche
+const zones = [
+  { name: "Bassin Principal", lat: 9.52, lng: -13.68, radius: 5000 },
+  { name: "Zone Côtière Nord", lat: 9.65, lng: -13.75, radius: 4000 },
+  { name: "Port de Conakry", lat: 9.51, lng: -13.71, radius: 3000 }
+];
+
+// Historique par zone
+const history = {
+  "Bassin Principal": [],
+  "Zone Côtière Nord": [],
+  "Port de Conakry": []
+};
+
+let map, markers = [], circles = [];
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+  // Carte
+  map = L.map('map').setView([9.55, -13.70], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+  zones.forEach(zone => {
+    const marker = L.marker([zone.lat, zone.lng]).addTo(map)
+      .bindPopup(`<b>${zone.name}</b><br>Analyse en cours...`);
+    markers.push(marker);
+
+    const circle = L.circle([zone.lat, zone.lng], {
+      color: 'gray', fillOpacity: 0.2, radius: zone.radius
+    }).addTo(map);
+    circles.push(circle);
+  });
+
+  // Graphique
+  const ctx = document.getElementById('waterChart').getContext('2d');
+  window.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: zones.map((zone, i) => ({
+        label: zone.name,
+        data: [],
+        borderColor: 'gray',
+        backgroundColor: 'rgba(128,128,128,0.1)',
+        tension: 0.3,
+        pointRadius: 4
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { suggestedMin: 5, suggestedMax: 10 } }
+    }
+  });
+
+  // Démarrer
+  updateCurrentConditions();
+  refreshAllZones();
+  setInterval(refreshAllZones, 12000);
+  setInterval(updateCurrentConditions, 1000); // Horloge live
+});
+
+// Horloge live + saison
+function updateCurrentConditions() {
+  const now = new Date();
+  const hour = now.getHours();
+  const month = now.getMonth();
+  const season = (month >= 4 && month <= 9) ? "Saison des pluies" : "Saison sèche";
+
+  const icon = (hour >= 6 && hour < 18) ? '<i class="bi bi-sun-fill text-warning me-2"></i>' : '<i class="bi bi-moon-fill text-secondary me-2"></i>';
+  document.getElementById('current-conditions').innerHTML = 
+    `${icon} <strong>${now.toLocaleTimeString()}</strong> | ${season}`;
+}
+
+// Simulation réaliste (heure + saison)
+function simulateSensorData(zoneIndex) {
+  const now = new Date();
+  const hour = now.getHours();
+  const month = now.getMonth();
+  const isRainySeason = (month >= 4 && month <= 9);
+
+  let baseTemp = isRainySeason ? 26.5 : 28.5;
+  let basePh = isRainySeason ? 7.4 : 7.8;
+  let baseTurbidite = isRainySeason ? 40 : 15;
+
+  if (hour >= 6 && hour < 10) { baseTemp -= 2; basePh -= 0.2; baseTurbidite += 10; }
+  else if (hour >= 10 && hour < 14) { baseTemp += 1.5; basePh += 0.2; baseTurbidite -= 8; }
+  else if (hour >= 14 && hour < 18) { baseTemp += 3; basePh += 0.4; baseTurbidite -= 12; }
+  else { baseTemp -= 1.5; basePh -= 0.1; baseTurbidite += 20; }
+
+  const variation = zoneIndex * 0.4;
+
+  return {
+    ph: Math.max(6.0, Math.min(9.0, parseFloat((basePh + variation + (Math.random() - 0.5) * 0.5).toFixed(2)))),
+    temp: parseFloat((baseTemp + variation + (Math.random() - 0.5) * 1.5).toFixed(1)),
+    turbidite: Math.max(5, Math.floor(baseTurbidite + variation * 10 + Math.random() * 20))
+  };
+}
+
+// Rafraîchissement automatique
+function refreshAllZones() {
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString();
+
+  zones.forEach((zone, index) => {
+    const data = simulateSensorData(index);
+
+    history[zone.name].push({ timestamp, ph: data.ph });
+    if (history[zone.name].length > 20) history[zone.name].shift();
+
+    const quality = analyzeWaterQuality(data.ph, data.temp, data.turbidite);
+
+    circles[index].setStyle({ color: quality.color, fillColor: quality.color });
+    markers[index].setPopupContent(`<b>${zone.name}</b><br>pH: ${data.ph} | Temp: ${data.temp}°C | Turb: ${data.turbidite} NTU<br><strong>${quality.message}</strong>`);
+
+    chart.data.datasets[index].borderColor = quality.color;
+    chart.data.datasets[index].backgroundColor = quality.color + '30';
+
+    if (index === 0) {
+      document.getElementById('ph-value').value = data.ph;
+      document.getElementById('temp-value').value = data.temp;
+      document.getElementById('turbidite-value').value = data.turbidite;
+      updateAlert(quality);
+    }
+  });
+
+  updateChart();
+}
+
+// Analyse manuelle (quand tu cliques sur le bouton)
+function manualAnalyze() {
+  const ph = parseFloat(document.getElementById('ph-value').value) || 7.0;
+  const temp = parseFloat(document.getElementById('temp-value').value) || 27.0;
+  const turbidite = parseFloat(document.getElementById('turbidite-value').value) || 25;
+
+  const quality = analyzeWaterQuality(ph, temp, turbidite);
+  updateAlert(quality);
+
+  // Mise à jour carte pour la première zone
+  circles[0].setStyle({ color: quality.color, fillColor: quality.color });
+  markers[0].setPopupContent(`<b>Bassin Principal</b><br>pH: ${ph} | Temp: ${temp}°C | Turb: ${turbidite} NTU<br><strong>${quality.message}</strong>`);
+}
+
+// Mise à jour alerte
+function updateAlert(quality) {
+  document.getElementById('ia-message').innerHTML = quality.message;
+  document.getElementById('ia-alert').className = 'alert fs-4 text-center ' + quality.alertClass;
+  document.getElementById('header-quality').className = 'card-header text-white text-center ' + quality.headerClass;
+}
+
+// Mise à jour graphique
+function updateChart() {
+  const labels = history[zones[0].name].map(h => h.timestamp);
+  chart.data.labels = labels;
+  zones.forEach((zone, i) => {
+    chart.data.datasets[i].data = history[zone.name].map(h => h.ph);
+  });
+  chart.update();
+}
+
+// Analyse qualité
+function analyzeWaterQuality(ph, temp, turbidite) {
+  let score = 0;
+  if (ph >= 6.5 && ph <= 8.5) score += 3;
+  if (temp >= 25 && temp <= 30) score += 3;
+  if (turbidite < 30) score += 3;
+
+  if (score >= 9) return { message: "🌊 Excellente qualité<br>Pêche optimale", color: '#28a745', alertClass: "alert-success", headerClass: "bg-success" };
+  if (score >= 6) return { message: "👍 Bonne qualité<br>Conditions favorables", color: '#007bff', alertClass: "alert-info", headerClass: "bg-primary" };
+  if (score >= 4) return { message: "⚠️ Qualité moyenne<br>Attention", color: '#ffc107', alertClass: "alert-warning", headerClass: "bg-warning" };
+  return { message: "🚨 Mauvaise qualité<br>Alerte pollution !", color: '#dc3545', alertClass: "alert-danger", headerClass: "bg-danger" };
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,32 @@
+ <%- include('header') %>
+<%- include('navbar') %>
+
+<div class="container my-5 text-center">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="display-1 fw-bold text-primary">404</h1>
+      <h2 class="display-5 mb-4">Page non trouvée</h2>
+      <p class="lead text-muted mb-5">
+        Désolé, la page que vous cherchez n'existe pas ou a été déplacée.
+      </p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="/" class="btn btn-primary btn-lg">
+          <i class="bi bi-house"></i> Retour à l'accueil
+        </a>
+        <a href="/rapport/introduction" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-book"></i> Voir le rapport
+        </a>
+        <% if (typeof req !== 'undefined' && req.session && req.session.isAdmin) { %>
+          <a href="/admin/ia-qualite" class="btn btn-success btn-lg">
+            <i class="bi bi-cpu"></i> Tableau de bord Admin
+          </a>
+        <% } %>
+      </div>
+      <div class="mt-5">
+        <img src="https://via.placeholder.com/600x300?text=Page+introuvable" alt="404" class="img-fluid rounded shadow">
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('footer') %>

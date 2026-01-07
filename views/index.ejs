@@ -1,0 +1,291 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<header class="bg-primary text-white py-5">
+  <div class="container text-center py-5">
+    <h1 class="display-3 fw-bold">BIENVENUES DANS CET ESPACE DE TRAVAIL !</h1>
+    <p class="lead fs-3">Système IoT pour la surveillance de la qualité de l'eau et la sécurité des bateaux de pêche</p>
+    
+    <div class="mt-5 d-flex justify-content-center gap-4 flex-wrap">
+      <!-- Bouton Cahier des charges -->
+      <a href="/documents/Proj IOT GRP10.docx" target="_blank" class="btn btn-light btn-lg px-5 py-3 shadow-lg fw-bold" style="font-size: 1.2rem;">
+        <i class="bi bi-file-earmark-text-fill fs-3 me-3"></i>
+        Télécharger le cahier des charges complet
+      </a>
+
+      <!-- Bouton Assistant IA -->
+      <button type="button" class="btn btn-warning btn-lg px-5 py-3 shadow-lg fw-bold" data-bs-toggle="modal" data-bs-target="#iaModal" style="font-size: 1.2rem;">
+        <i class="bi bi-robot fs-3 me-3"></i>
+        Assistant IA Pêche
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="container my-5">
+  <div class="row g-5 justify-content-center">
+
+    <!-- Carte 1 : Qualité de l'eau (cliquable) -->
+    <div class="col-lg-5">
+      <div class="card h-100 border-0 shadow-lg rounded-4 clickable-card" data-bs-toggle="modal" data-bs-target="#modalQualiteEau">
+        <div class="card-body text-center p-5">
+          <i class="bi bi-droplet-fill text-primary display-1 mb-4"></i>
+          <h3 class="fw-bold">Surveillance de la qualité de l'eau</h3>
+          <p class="fs-5 text-muted">
+            Mesure en temps réel : température, pH, turbidité<br>
+            Alertes automatiques en cas d'anomalie
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carte 2 : Sécurité des pêcheurs (cliquable) -->
+    <div class="col-lg-5">
+      <div class="card h-100 border-0 shadow-lg rounded-4 clickable-card" data-bs-toggle="modal" data-bs-target="#modalSecurite">
+        <div class="card-body text-center p-5">
+          <i class="bi bi-geo-alt-fill text-primary display-1 mb-4"></i>
+          <h3 class="fw-bold">Sécurité des pêcheurs</h3>
+          <p class="fs-5 text-muted">
+            Suivi GPS des bateaux<br>
+            Alertes SOS et dérive automatique
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL 1 : Explications qualité de l'eau -->
+<div class="modal fade" id="modalQualiteEau" tabindex="-1" aria-labelledby="modalQualiteEauLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalQualiteEauLabel">
+          <i class="bi bi-droplet-fill me-2"></i> Surveillance de la qualité de l'eau
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-5">
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-activity me-2"></i> pH de l'eau</h5>
+        <p>
+          <strong>Valeur idéale :</strong> 6.5 à 8.5<br>
+          • < 6.5 : eau trop acide → toxique pour les poissons<br>
+          • > 8.5 : eau trop alcaline → stress et maladies<br>
+          Proj_iot alerte dès que le pH sort de cette plage.
+        </p>
+
+        <h5 class="fw-bold text-warning mt-4 mb-3"><i class="bi bi-thermometer-sun me-2"></i> Température</h5>
+        <p>
+          <strong>Valeur idéale :</strong> 25 à 30°C<br>
+          • > 30°C : risque élevé de mortalité (manque d'oxygène)<br>
+          • < 24°C : croissance ralentie des poissons<br>
+          Proj_iot surveille en continu pour éviter les chocs thermiques.
+        </p>
+
+        <h5 class="fw-bold text-info mt-4 mb-3"><i class="bi bi-cloud-haze2 me-2"></i> Turbidité</h5>
+        <p>
+          <strong>Valeur idéale :</strong> < 30 NTU<br>
+          • > 30 NTU : eau trouble (sédiments, pollution)<br>
+          Impact : réduit la lumière → moins de photosynthèse → moins d'oxygène<br>
+          Proj_iot détecte la turbidité et envoie alerte pollution.
+        </p>
+
+        <div class="alert alert-success mt-4 text-center">
+          <strong>Proj_iot protège les poissons en surveillant ces 3 paramètres 24h/24</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2 : Explications sécurité pêcheurs -->
+<div class="modal fade" id="modalSecurite" tabindex="-1" aria-labelledby="modalSecuriteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalSecuriteLabel">
+          <i class="bi bi-geo-alt-fill me-2"></i> Sécurité des pêcheurs
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-5">
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-pin-map me-2"></i> Localisation GPS en temps réel</h5>
+        <p>
+          Proj_iot suit la position exacte du bateau à tout moment.<br>
+          Mise à jour toutes les minutes via module GPS embarqué.
+        </p>
+
+        <h5 class="fw-bold text-warning mt-4 mb-3"><i class="bi bi-sign-stop me-2"></i> Zones de pêche sécurisées</h5>
+        <p>
+          Cercles virtuels autour du port et des zones autorisées.<br>
+          Si le bateau sort de la zone → <strong>alerte dérive automatique</strong> envoyée à l'admin.
+        </p>
+
+        <h5 class="fw-bold text-danger mt-4 mb-3"><i class="bi bi-exclamation-triangle me-2"></i> Alerte SOS</h5>
+        <p>
+          Bouton d'urgence sur le dispositif embarqué.<br>
+          Appui long → envoi immédiat de la position GPS + message SOS aux autorités et familles.
+        </p>
+
+        <div class="alert alert-danger mt-4 text-center">
+          <strong>Proj_iot sauve des vies en mer</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .clickable-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .clickable-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
+  }
+</style>
+
+<!-- MODAL ASSISTANT IA -->
+<div class="modal fade" id="iaModal" tabindex="-1" aria-labelledby="iaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="iaModalLabel">
+          <i class="bi bi-robot me-2"></i> Assistant IA - Pêche en Guinée
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted text-center mb-4 lead">
+          Posez-moi n'importe quelle question sur la pêche en Guinée : espèces de poissons, maladies, milieu de vie, pollution, sécurité, saisons...<br>
+          Je vous donne des informations précises + des solutions pratiques !
+        </p>
+
+        <div class="input-group mb-4">
+          <input type="text" id="ia-question" class="form-control form-control-lg" placeholder="Ex: Espèces de poissons en Guinée ? Maladies courantes ? Solutions pollution ?" aria-label="Question IA">
+          <button class="btn btn-primary btn-lg" type="button" onclick="askIA()">
+            <i class="bi bi-send"></i> Envoyer
+          </button>
+        </div>
+
+        <div id="ia-response" class="mt-4 p-4 bg-light rounded shadow-sm" style="min-height: 300px; display: none;">
+          <p class="text-muted">En attente de votre question...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted">IA spécialisée pêche durable en Guinée • Conseils pratiques et scientifiques</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function askIA() {
+  const question = document.getElementById('ia-question').value.trim().toLowerCase();
+  const responseDiv = document.getElementById('ia-response');
+  
+  if (question === '') {
+    responseDiv.innerHTML = '<p class="text-danger">Veuillez poser une question !</p>';
+    responseDiv.style.display = 'block';
+    return;
+  }
+
+  responseDiv.style.display = 'block';
+  responseDiv.innerHTML = '<p class="text-info"><i class="bi bi-hourglass-split"></i> L\'IA analyse votre question...</p>';
+
+  let answer = "";
+
+  // ESPÈCES DE POISSONS
+  if (question.includes("espèces") || question.includes("poisson") || question.includes("types") || question.includes("quels poissons")) {
+    answer = "🐟 <strong>Principales espèces pêchées en Guinée Conakry :</strong><br>" +
+             "• <strong>Barracuda</strong> (Sphyraena barracuda) – très combatif<br>" +
+             "• <strong>Tarpon</strong> (Megalops atlanticus) – jusqu'à 100 kg<br>" +
+             "• <strong>Capitaine</strong> (Polydactylus quadrifilis)<br>" +
+             "• <strong>Carangue</strong>, <strong>Cobia</strong>, <strong>Carpe rouge</strong><br>" +
+             "• <strong>Thon</strong>, <strong>Sardinelle</strong>, <strong>Ethmalose</strong> (pélagiques)<br>" +
+             "• <strong>Tilapia</strong> et <strong>Mâchoiron</strong> en estuaires<br><br>" +
+             "<strong>Solutions durables :</strong> Utiliser des maillages sélectifs pour préserver les juvéniles et éviter la surpêche.";
+  }
+
+  // MALADIES DES POISSONS
+  else if (question.includes("maladies") || question.includes("santé") || question.includes("parasite") || question.includes("malade")) {
+    answer = "🚑 <strong>Maladies courantes des poissons en Guinée :</strong><br>" +
+             "• Parasites (vers, protozoaires comme Ichthyophthirius)<br>" +
+             "• Infections bactériennes (Vibrio, Aeromonas)<br>" +
+             "• Infections fongiques (Saprolegnia)<br>" +
+             "• Stress lié à pollution ou turbidité haute<br><br>" +
+             "<strong>Solutions :</strong><br>" +
+             "• Proj_iot détecte pollution précoce (turbidité >30 NTU ou pH anormal)<br>" +
+             "• Éviter zones polluées<br>" +
+             "• Bonne hygiène en aquaculture<br>" +
+             "• Quarantaine pour nouveaux poissons";
+  }
+
+  // MILIEU DE VIE
+  else if (question.includes("milieu") || question.includes("habitat") || question.includes("mangrove") || question.includes("estuaire")) {
+    answer = "🌿 <strong>Milieu de vie des poissons côtiers en Guinée :</strong><br>" +
+             "• Mangroves et estuaires : nurseries essentielles pour juvéniles<br>" +
+             "• Eaux saumâtres riches en nutriments<br>" +
+             "• Plateau continental (eaux peu profondes)<br><br>" +
+             "<strong>Solutions face à la dégradation :</strong><br>" +
+             "• Protéger les mangroves (piègent sédiments, abritent poissons)<br>" +
+             "• Proj_iot surveille qualité eau dans ces zones sensibles<br>" +
+             "• Restauration des écosystèmes côtiers";
+  }
+
+  // POLLUTION
+  else if (question.includes("pollution") || question.includes("eau") || question.includes("qualité")) {
+    answer = "🚨 <strong>Pollution de l'eau en Guinée :</strong><br>" +
+             "• Déchets plastiques, rejets industriels, ruissellement saison pluie<br>" +
+             "• Impact : pH bas, turbidité haute, mortalité poissons<br><br>" +
+             "<strong>Solutions :</strong><br>" +
+             "• Proj_iot alerte en temps réel (pH, température, turbidité)<br>" +
+             "• Réduire déchets à la source<br>" +
+             "• Créer zones marines protégées<br>" +
+             "• Sensibilisation des communautés";
+  }
+
+  // SÉCURITÉ
+  else if (question.includes("sécurité") || question.includes("bateau") || question.includes("pêcheur")) {
+    answer = "🆘 <strong>Sécurité des pêcheurs :</strong><br>" +
+             "• Risques : dérive, tempêtes, piraterie (golfe de Guinée)<br><br>" +
+             "<strong>Solutions :</strong><br>" +
+             "• Proj_iot suit bateaux GPS + alerte SOS<br>" +
+             "• Gilet de sauvetage obligatoire<br>" +
+             "• Prévision météo avant sortie<br>" +
+             "• Patrouilles côtières";
+  }
+
+  // SAISONS
+  else if (question.includes("saison") || question.includes("pluie") || question.includes("sèche")) {
+    answer = "📅 <strong>Saisons et pêche en Guinée :</strong><br>" +
+             "• Saison sèche (nov-avril) : eau claire, excellente qualité, meilleure pêche<br>" +
+             "• Saison des pluies (mai-oct) : turbidité haute, pollution accrue, risques santé<br><br>" +
+             "<strong>Solutions :</strong><br>" +
+             "• Proj_iot adapte alertes selon saison<br>" +
+             "• Réduire effort pêche en saison pluie<br>" +
+             "• Diversifier activités (aquaculture)";
+  }
+
+  // RÉPONSE PAR DÉFAUT
+  else {
+    answer = "🤖 <strong>Je suis l'Assistant IA spécialisé en pêche en Guinée.</strong><br>" +
+             "Je peux vous aider sur :<br>" +
+             "• Espèces de poissons<br>" +
+             "• Maladies et santé<br>" +
+             "• Milieu de vie (mangroves, estuaires)<br>" +
+             "• Pollution et qualité de l'eau<br>" +
+             "• Sécurité des pêcheurs<br>" +
+             "• Impact des saisons<br><br>" +
+             "Posez-moi une question précise pour une réponse détaillée + solutions !";
+  }
+
+  setTimeout(() => {
+    responseDiv.innerHTML = `<div class="fw-bold text-primary mb-3 fs-5">Réponse IA :</div><div>${answer}</div>`;
+  }, 1200);
+}
+</script>
+
+<%- include('partials/footer') %>

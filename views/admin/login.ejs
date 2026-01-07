@@ -1,0 +1,45 @@
+ 
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
+          <h2 class="text-center mb-4 fw-bold text-primary">
+            <i class="bi bi-shield-lock fs-1"></i><br>
+            Connexion Admin - Proj_iot
+          </h2>
+
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger text-center"><%= error %></div>
+          <% } %>
+
+          <form method="POST" action="/admin/login">
+            <div class="mb-4">
+              <label for="username" class="form-label fw-medium">Nom d'utilisateur</label>
+              <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="admin" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label fw-medium">Mot de passe</label>
+              <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+              Se connecter
+            </button>
+
+            <p class="text-center mt-4 text-muted small">
+              Identifiants par défaut :<br>
+              <strong>admin</strong> / <strong>proj_iot123</strong>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
