@@ -1,45 +1,218 @@
- 
 <%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+  <%- include('../partials/navbar') %>
 
-<div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-body p-5">
-          <h2 class="text-center mb-4 fw-bold text-primary">
-            <i class="bi bi-shield-lock fs-1"></i><br>
-            Connexion Admin - Proj_iot
-          </h2>
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
 
-          <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-danger text-center"><%= error %></div>
+      body {
+        background: #f0f2f5;
+        background-image:
+          radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+          radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+          radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+        min-height: 100vh;
+      }
+
+      .login-container {
+        min-height: calc(100vh - 160px);
+        /* Ajustement pour header/footer */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .login-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: var(--glass-shadow);
+        max-width: 450px;
+        width: 100%;
+        padding: 2.5rem;
+        transition: transform 0.3s ease;
+      }
+
+      .login-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .avatar-icon {
+        width: 90px;
+        height: 90px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: -4.5rem auto 1.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        border: 5px solid white;
+      }
+
+      .avatar-icon i {
+        font-size: 2.5rem;
+        color: white;
+      }
+
+      .login-title {
+        color: #1a1a1a;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .login-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+
+      .form-floating>.form-control:focus,
+      .form-floating>.form-control:not(:placeholder-shown) {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+      }
+
+      .form-control {
+        border: 2px solid #eef2f7;
+        border-radius: 10px;
+        padding: 1rem;
+        height: auto;
+        font-size: 0.95rem;
+      }
+
+      .form-control:focus {
+        border-color: #764ba2;
+        box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+      }
+
+      .btn-login {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 0.8rem;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-login:hover {
+        filter: brightness(110%);
+        box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .password-toggle {
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 10;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      .default-creds {
+        background: rgba(118, 75, 162, 0.05);
+        border: 1px dashed #764ba2;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 2rem;
+      }
+
+      .cred-badge {
+        background: #fff;
+        border: 1px solid #eef2f7;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-family: monospace;
+        color: #d63384;
+        font-weight: 600;
+      }
+    </style>
+
+    <div class="login-container">
+      <div class="login-card">
+        <div class="avatar-icon">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+
+        <div class="text-center">
+          <h2 class="login-title">Administration</h2>
+          <p class="login-subtitle">Connectez-vous pour gérer le système IoT</p>
+        </div>
+
+        <% if (typeof error !=='undefined' && error) { %>
+          <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            <div>
+              <%= error %>
+            </div>
+          </div>
           <% } %>
 
-          <form method="POST" action="/admin/login">
-            <div class="mb-4">
-              <label for="username" class="form-label fw-medium">Nom d'utilisateur</label>
-              <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="admin" required>
-            </div>
+            <form method="POST" action="/admin/login">
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Nom d'utilisateur"
+                  required autofocus>
+                <label for="username"><i class="bi bi-person me-2"></i>Nom d'utilisateur</label>
+              </div>
 
-            <div class="mb-4">
-              <label for="password" class="form-label fw-medium">Mot de passe</label>
-              <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="••••••••" required>
-            </div>
+              <div class="form-floating mb-4 position-relative">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe"
+                  required>
+                <label for="password"><i class="bi bi-key me-2"></i>Mot de passe</label>
+                <span class="password-toggle" onclick="togglePassword()">
+                  <i class="bi bi-eye" id="toggleIcon"></i>
+                </span>
+              </div>
 
-            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
-              Se connecter
-            </button>
+              <div class="d-flex justify-content-end mb-4" style="margin-top: -1rem;">
+                <a href="/admin/forgot-password" class="small text-decoration-none text-muted">
+                  <i class="bi bi-question-circle me-1"></i>Mot de passe oublié ?
+                </a>
+              </div>
 
-            <p class="text-center mt-4 text-muted small">
-              Identifiants par défaut :<br>
-              <strong>admin</strong> / <strong>proj_iot123</strong>
-            </p>
-          </form>
-        </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-login text-white">
+                  <i class="bi bi-box-arrow-in-right me-2"></i> Se connecter
+                </button>
+              </div>
+
+              <div class="default-creds text-center">
+                <p class="small text-muted mb-2 fw-bold">Environnement de Développement</p>
+                <div class="small text-muted">
+                  User: <span class="cred-badge">admin</span>
+                  Pass: <span class="cred-badge">donzosd</span>
+                </div>
+              </div>
+            </form>
       </div>
     </div>
-  </div>
-</div>
 
-<%- include('../partials/footer') %>
+    <script>
+      function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+          passwordInput.type = 'password';
+          toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+      }
+    </script>
+
+    <%- include('../partials/footer') %>

@@ -17,6 +17,13 @@ app.use(session({
   cookie: { secure: false } // Met true seulement si tu utilises HTTPS
 }));
 
+// Middleware pour rendre la session accessible dans toutes les vues
+app.use((req, res, next) => {
+  res.locals.isAdmin = req.session.isAdmin || false;
+  res.locals.username = req.session.username || null;
+  next();
+});
+
 // === 2. Configuration du moteur de vues ===
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -26,9 +33,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // === 4. Routes publiques : Login Admin (accessibles sans être connecté) ===
 app.get('/admin/login', (req, res) => {
-  res.render('admin/login', { 
+  res.render('admin/login', {
     title: 'Proj_iot - Connexion Admin',
-    error: null 
+    error: null
   });
 });
 
@@ -38,11 +45,46 @@ app.post('/admin/login', (req, res) => {
   // Change 'donzosd' par le mot de passe que tu veux
   if (username === 'admin' && password === 'donzosd') {
     req.session.isAdmin = true;
+    req.session.username = username; // Stockage du nom via la session (ou DB)
     return res.redirect('/admin/ia-qualite');
   } else {
-    return res.render('admin/login', { 
+    return res.render('admin/login', {
       title: 'Proj_iot - Connexion Admin',
       error: 'Identifiants incorrects. Utilise admin / donzosd'
+    });
+  }
+});
+
+// === 4b. Routes publiques : Mot de passe oublié ===
+// Affiche le formulaire de récupération
+app.get('/admin/forgot-password', (req, res) => {
+  res.render('admin/forgot-password', {
+    title: 'Proj_iot - Récupération de mot de passe',
+    error: null,
+    success: null
+  });
+});
+
+// Traite la demande de réinitialisation (Simulation)
+app.post('/admin/forgot-password', (req, res) => {
+  const { email } = req.body;
+
+  // Simulation : on fait semblant d'envoyer un mail
+  // Dans un vrai projet, on vérifierait si l'email existe en base de données
+  // puis on enverrait un token via Nodemailer.
+
+  if (email) {
+    // Succès simulé pour l'UX
+    res.render('admin/forgot-password', {
+      title: 'Proj_iot - Email envoyé',
+      error: null,
+      success: `Si un compte est associé à ${email}, vous recevrez un lien de réinitialisation dans quelques instants.`
+    });
+  } else {
+    res.render('admin/forgot-password', {
+      title: 'Proj_iot - Récupération impossible',
+      error: 'Veuillez entrer une adresse email valide.',
+      success: null
     });
   }
 });

@@ -1,291 +1,626 @@
 <%- include('partials/header') %>
-<%- include('partials/navbar') %>
+  <%- include('partials/navbar') %>
 
-<header class="bg-primary text-white py-5">
-  <div class="container text-center py-5">
-    <h1 class="display-3 fw-bold">BIENVENUES DANS CET ESPACE DE TRAVAIL !</h1>
-    <p class="lead fs-3">Système IoT pour la surveillance de la qualité de l'eau et la sécurité des bateaux de pêche</p>
-    
-    <div class="mt-5 d-flex justify-content-center gap-4 flex-wrap">
-      <!-- Bouton Cahier des charges -->
-      <a href="/documents/Proj IOT GRP10.docx" target="_blank" class="btn btn-light btn-lg px-5 py-3 shadow-lg fw-bold" style="font-size: 1.2rem;">
-        <i class="bi bi-file-earmark-text-fill fs-3 me-3"></i>
-        Télécharger le cahier des charges complet
-      </a>
+    <!-- Third-party Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-      <!-- Bouton Assistant IA -->
-      <button type="button" class="btn btn-warning btn-lg px-5 py-3 shadow-lg fw-bold" data-bs-toggle="modal" data-bs-target="#iaModal" style="font-size: 1.2rem;">
-        <i class="bi bi-robot fs-3 me-3"></i>
-        Assistant IA Pêche
-      </button>
-    </div>
-  </div>
-</header>
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        --glass-bg: rgba(255, 255, 255, 0.9);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+      }
 
-<div class="container my-5">
-  <div class="row g-5 justify-content-center">
+      body {
+        background: #f0f2f5;
+        background-image:
+          radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+          radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+          radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+        background-attachment: fixed;
+        color: #333;
+      }
 
-    <!-- Carte 1 : Qualité de l'eau (cliquable) -->
-    <div class="col-lg-5">
-      <div class="card h-100 border-0 shadow-lg rounded-4 clickable-card" data-bs-toggle="modal" data-bs-target="#modalQualiteEau">
-        <div class="card-body text-center p-5">
-          <i class="bi bi-droplet-fill text-primary display-1 mb-4"></i>
-          <h3 class="fw-bold">Surveillance de la qualité de l'eau</h3>
-          <p class="fs-5 text-muted">
-            Mesure en temps réel : température, pH, turbidité<br>
-            Alertes automatiques en cas d'anomalie
-          </p>
-        </div>
-      </div>
-    </div>
+      .hero-section {
+        padding: 4rem 0 2rem;
+        color: white;
+        text-align: center;
+      }
 
-    <!-- Carte 2 : Sécurité des pêcheurs (cliquable) -->
-    <div class="col-lg-5">
-      <div class="card h-100 border-0 shadow-lg rounded-4 clickable-card" data-bs-toggle="modal" data-bs-target="#modalSecurite">
-        <div class="card-body text-center p-5">
-          <i class="bi bi-geo-alt-fill text-primary display-1 mb-4"></i>
-          <h3 class="fw-bold">Sécurité des pêcheurs</h3>
-          <p class="fs-5 text-muted">
-            Suivi GPS des bateaux<br>
-            Alertes SOS et dérive automatique
-          </p>
-        </div>
-      </div>
-    </div>
+      .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        border-radius: 24px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
 
-  </div>
-</div>
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
 
-<!-- MODAL 1 : Explications qualité de l'eau -->
-<div class="modal fade" id="modalQualiteEau" tabindex="-1" aria-labelledby="modalQualiteEauLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-bold" id="modalQualiteEauLabel">
-          <i class="bi bi-droplet-fill me-2"></i> Surveillance de la qualité de l'eau
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-5">
-        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-activity me-2"></i> pH de l'eau</h5>
-        <p>
-          <strong>Valeur idéale :</strong> 6.5 à 8.5<br>
-          • < 6.5 : eau trop acide → toxique pour les poissons<br>
-          • > 8.5 : eau trop alcaline → stress et maladies<br>
-          Proj_iot alerte dès que le pH sort de cette plage.
-        </p>
+      .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
 
-        <h5 class="fw-bold text-warning mt-4 mb-3"><i class="bi bi-thermometer-sun me-2"></i> Température</h5>
-        <p>
-          <strong>Valeur idéale :</strong> 25 à 30°C<br>
-          • > 30°C : risque élevé de mortalité (manque d'oxygène)<br>
-          • < 24°C : croissance ralentie des poissons<br>
-          Proj_iot surveille en continu pour éviter les chocs thermiques.
-        </p>
+      .stat-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        flex-shrink: 0;
+      }
 
-        <h5 class="fw-bold text-info mt-4 mb-3"><i class="bi bi-cloud-haze2 me-2"></i> Turbidité</h5>
-        <p>
-          <strong>Valeur idéale :</strong> < 30 NTU<br>
-          • > 30 NTU : eau trouble (sédiments, pollution)<br>
-          Impact : réduit la lumière → moins de photosynthèse → moins d'oxygène<br>
-          Proj_iot détecte la turbidité et envoie alerte pollution.
-        </p>
+      .bg-gradient-1 {
+        background: var(--primary-gradient);
+      }
 
-        <div class="alert alert-success mt-4 text-center">
-          <strong>Proj_iot protège les poissons en surveillant ces 3 paramètres 24h/24</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+      .bg-gradient-2 {
+        background: var(--secondary-gradient);
+      }
 
-<!-- MODAL 2 : Explications sécurité pêcheurs -->
-<div class="modal fade" id="modalSecurite" tabindex="-1" aria-labelledby="modalSecuriteLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-bold" id="modalSecuriteLabel">
-          <i class="bi bi-geo-alt-fill me-2"></i> Sécurité des pêcheurs
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-5">
-        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-pin-map me-2"></i> Localisation GPS en temps réel</h5>
-        <p>
-          Proj_iot suit la position exacte du bateau à tout moment.<br>
-          Mise à jour toutes les minutes via module GPS embarqué.
-        </p>
+      .bg-gradient-3 {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        color: #d63384;
+      }
 
-        <h5 class="fw-bold text-warning mt-4 mb-3"><i class="bi bi-sign-stop me-2"></i> Zones de pêche sécurisées</h5>
-        <p>
-          Cercles virtuels autour du port et des zones autorisées.<br>
-          Si le bateau sort de la zone → <strong>alerte dérive automatique</strong> envoyée à l'admin.
-        </p>
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
 
-        <h5 class="fw-bold text-danger mt-4 mb-3"><i class="bi bi-exclamation-triangle me-2"></i> Alerte SOS</h5>
-        <p>
-          Bouton d'urgence sur le dispositif embarqué.<br>
-          Appui long → envoi immédiat de la position GPS + message SOS aux autorités et familles.
-        </p>
+      #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 16px;
+        z-index: 1;
+      }
 
-        <div class="alert alert-danger mt-4 text-center">
-          <strong>Proj_iot sauve des vies en mer</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+      .ai-section {
+        margin-top: 3rem;
+      }
 
-<style>
-  .clickable-card {
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .clickable-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
-  }
-</style>
+      .ai-chat-box {
+        max-height: 400px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+      }
 
-<!-- MODAL ASSISTANT IA -->
-<div class="modal fade" id="iaModal" tabindex="-1" aria-labelledby="iaModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-bold" id="iaModalLabel">
-          <i class="bi bi-robot me-2"></i> Assistant IA - Pêche en Guinée
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-muted text-center mb-4 lead">
-          Posez-moi n'importe quelle question sur la pêche en Guinée : espèces de poissons, maladies, milieu de vie, pollution, sécurité, saisons...<br>
-          Je vous donne des informations précises + des solutions pratiques !
-        </p>
+      .pulse-badge {
+        animation: pulse 2s infinite;
+      }
 
-        <div class="input-group mb-4">
-          <input type="text" id="ia-question" class="form-control form-control-lg" placeholder="Ex: Espèces de poissons en Guinée ? Maladies courantes ? Solutions pollution ?" aria-label="Question IA">
-          <button class="btn btn-primary btn-lg" type="button" onclick="askIA()">
-            <i class="bi bi-send"></i> Envoyer
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(42, 245, 152, 0.7);
+        }
+
+        70% {
+          box-shadow: 0 0 0 10px rgba(42, 245, 152, 0);
+        }
+
+        100% {
+          box-shadow: 0 0 0 0 rgba(42, 245, 152, 0);
+        }
+      }
+    </style>
+
+    <div class="hero-section">
+      <div class="container">
+        <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider">
+          <i class="bi bi-broadcast me-2 pulse-badge"></i>Système actif
+        </span>
+        <h1 class="display-3 fw-bold mb-3">Surveillance Maritime Intelligente</h1>
+        <p class="lead text-white-50 mb-4">Gestion de la qualité de l'eau et sécurité des pêcheurs en temps réel.</p>
+
+        <div class="d-flex justify-content-center gap-3">
+          <a href="#dashboard" class="btn btn-light btn-lg px-4 fw-bold rounded-pill">
+            <i class="bi bi-activity me-2"></i>Tableau de Bord
+          </a>
+          <button class="btn btn-outline-light btn-lg px-4 fw-bold rounded-pill" data-bs-toggle="modal"
+            data-bs-target="#iaModal">
+            <i class="bi bi-robot me-2"></i>Assistant IA
           </button>
         </div>
-
-        <div id="ia-response" class="mt-4 p-4 bg-light rounded shadow-sm" style="min-height: 300px; display: none;">
-          <p class="text-muted">En attente de votre question...</p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <small class="text-muted">IA spécialisée pêche durable en Guinée • Conseils pratiques et scientifiques</small>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-function askIA() {
-  const question = document.getElementById('ia-question').value.trim().toLowerCase();
-  const responseDiv = document.getElementById('ia-response');
-  
-  if (question === '') {
-    responseDiv.innerHTML = '<p class="text-danger">Veuillez poser une question !</p>';
-    responseDiv.style.display = 'block';
-    return;
-  }
+    <div class="container pb-5" id="dashboard">
+      <!-- Key Metrics Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="glass-card stat-card">
+            <div class="stat-icon bg-gradient-1">
+              <i class="bi bi-droplet-half"></i>
+            </div>
+            <div>
+              <h6 class="text-muted mb-1">pH Moyen (J-7)</h6>
+              <h3 class="fw-bold mb-0">7.2</h3>
+              <small class="text-success"><i class="bi bi-arrow-up-short"></i> Stable</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-card stat-card">
+            <div class="stat-icon bg-gradient-2">
+              <i class="bi bi-thermometer-half"></i>
+            </div>
+            <div>
+              <h6 class="text-muted mb-1">Température</h6>
+              <h3 class="fw-bold mb-0">26.5°C</h3>
+              <small class="text-success"><i class="bi bi-check-circle-fill"></i> Optimale</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-card stat-card">
+            <div class="stat-icon bg-gradient-3">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <h6 class="text-muted mb-1">Pêcheurs Actifs</h6>
+              <h3 class="fw-bold mb-0">12</h3>
+              <small class="text-muted">Zone surveillée</small>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  responseDiv.style.display = 'block';
-  responseDiv.innerHTML = '<p class="text-info"><i class="bi bi-hourglass-split"></i> L\'IA analyse votre question...</p>';
+      <!-- Charts & Map Section -->
+      <div class="row g-4">
+        <!-- Live Charts -->
+        <div class="col-lg-8">
+          <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold"><i class="bi bi-graph-up me-2"></i>Données Temps Réel (Simulées)</h5>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary active">pH</button>
+                <button class="btn btn-outline-primary">Temp</button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="mainChart"></canvas>
+            </div>
+          </div>
+        </div>
 
-  let answer = "";
+        <!-- Live Map -->
+        <div class="col-lg-4">
+          <div class="glass-card p-0 overflow-hidden d-flex flex-column h-100">
+            <div class="p-3 bg-white border-bottom">
+              <h5 class="fw-bold m-0"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Localisation</h5>
+            </div>
+            <div id="map" class="flex-grow-1" style="height: 300px;"></div>
+            <div class="p-3 bg-light border-top">
+              <div class="d-flex align-items-center">
+                <div class="spinner-grow spinner-grow-sm text-danger me-2" role="status"></div>
+                <small class="text-dark fw-bold">Suivi GPS actif • Bateau #042</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  // ESPÈCES DE POISSONS
-  if (question.includes("espèces") || question.includes("poisson") || question.includes("types") || question.includes("quels poissons")) {
-    answer = "🐟 <strong>Principales espèces pêchées en Guinée Conakry :</strong><br>" +
-             "• <strong>Barracuda</strong> (Sphyraena barracuda) – très combatif<br>" +
-             "• <strong>Tarpon</strong> (Megalops atlanticus) – jusqu'à 100 kg<br>" +
-             "• <strong>Capitaine</strong> (Polydactylus quadrifilis)<br>" +
-             "• <strong>Carangue</strong>, <strong>Cobia</strong>, <strong>Carpe rouge</strong><br>" +
-             "• <strong>Thon</strong>, <strong>Sardinelle</strong>, <strong>Ethmalose</strong> (pélagiques)<br>" +
-             "• <strong>Tilapia</strong> et <strong>Mâchoiron</strong> en estuaires<br><br>" +
-             "<strong>Solutions durables :</strong> Utiliser des maillages sélectifs pour préserver les juvéniles et éviter la surpêche.";
-  }
+      <!-- Feature Cards (Bento Grid style) -->
+      <div class="row g-4 mt-2">
+        <div class="col-md-6">
+          <div class="glass-card bg-white">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-shield-check text-success display-4 me-3"></i>
+              <div>
+                <h4 class="fw-bold">Sécurité Renforcée</h4>
+                <p class="text-muted">Notre système détecte automatiquement les sorties de zone (Geofencing) et envoie
+                  des alertes immédiates en cas de détresse (SOS).</p>
+                <a href="#" class="btn btn-sm btn-outline-success rounded-pill">En savoir plus</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="glass-card bg-white">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-water text-primary display-4 me-3"></i>
+              <div>
+                <h4 class="fw-bold">Qualité de l'Eau</h4>
+                <p class="text-muted">Analyse continue de la turbidité, du pH et de la température pour garantir un
+                  écosystème sain et une pêche durable.</p>
+                <a href="/documents/Proj IOT GRP10.docx"
+                  class="btn btn-sm btn-outline-primary rounded-pill">Documentation</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // MALADIES DES POISSONS
-  else if (question.includes("maladies") || question.includes("santé") || question.includes("parasite") || question.includes("malade")) {
-    answer = "🚑 <strong>Maladies courantes des poissons en Guinée :</strong><br>" +
-             "• Parasites (vers, protozoaires comme Ichthyophthirius)<br>" +
-             "• Infections bactériennes (Vibrio, Aeromonas)<br>" +
-             "• Infections fongiques (Saprolegnia)<br>" +
-             "• Stress lié à pollution ou turbidité haute<br><br>" +
-             "<strong>Solutions :</strong><br>" +
-             "• Proj_iot détecte pollution précoce (turbidité >30 NTU ou pH anormal)<br>" +
-             "• Éviter zones polluées<br>" +
-             "• Bonne hygiène en aquaculture<br>" +
-             "• Quarantaine pour nouveaux poissons";
-  }
+    <!-- AI Modal (Improved) -->
+    <div class="modal fade" id="iaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+          <div class="modal-header bg-primary text-white p-4">
+            <div>
+              <h5 class="modal-title fw-bold mb-1"><i class="bi bi-robot me-2"></i>Assistant Expert Pêche</h5>
+              <small style="opacity: 0.8;">Expert en gestion de pêche, IoT et écosystèmes marins.</small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <div class="d-flex flex-column" style="height: 500px;">
+              <!-- Chat Area -->
+              <div id="ai-chat-area" class="flex-grow-1 p-4" style="background: #f8f9fa; overflow-y: auto;">
+                <div class="d-flex mb-3">
+                  <div class="bg-primary text-white rounded-3 p-3 shadow-sm"
+                    style="max-width: 80%; border-bottom-left-radius: 0;">
+                    Bonjour ! Je suis votre assistant intelligent. Je peux vous aider sur la gestion de la pêche,
+                    l'analyse des données IoT (pH, Température) et les pratiques de pêche durable. Quelle est votre
+                    question ?
+                  </div>
+                </div>
+              </div>
 
-  // MILIEU DE VIE
-  else if (question.includes("milieu") || question.includes("habitat") || question.includes("mangrove") || question.includes("estuaire")) {
-    answer = "🌿 <strong>Milieu de vie des poissons côtiers en Guinée :</strong><br>" +
-             "• Mangroves et estuaires : nurseries essentielles pour juvéniles<br>" +
-             "• Eaux saumâtres riches en nutriments<br>" +
-             "• Plateau continental (eaux peu profondes)<br><br>" +
-             "<strong>Solutions face à la dégradation :</strong><br>" +
-             "• Protéger les mangroves (piègent sédiments, abritent poissons)<br>" +
-             "• Proj_iot surveille qualité eau dans ces zones sensibles<br>" +
-             "• Restauration des écosystèmes côtiers";
-  }
+              <!-- Input Area -->
+              <div class="p-3 bg-white border-top">
+                <div class="input-group input-group-lg">
+                  <input type="text" id="ai-input" class="form-control border-0 bg-light"
+                    placeholder="Écrivez votre question..." style="border-radius: 50px 0 0 50px; box-shadow: none;">
+                  <button class="btn btn-primary px-4" type="button" onclick="sendMessage()"
+                    style="border-radius: 0 50px 50px 0;">
+                    <i class="bi bi-send-fill"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // POLLUTION
-  else if (question.includes("pollution") || question.includes("eau") || question.includes("qualité")) {
-    answer = "🚨 <strong>Pollution de l'eau en Guinée :</strong><br>" +
-             "• Déchets plastiques, rejets industriels, ruissellement saison pluie<br>" +
-             "• Impact : pH bas, turbidité haute, mortalité poissons<br><br>" +
-             "<strong>Solutions :</strong><br>" +
-             "• Proj_iot alerte en temps réel (pH, température, turbidité)<br>" +
-             "• Réduire déchets à la source<br>" +
-             "• Créer zones marines protégées<br>" +
-             "• Sensibilisation des communautés";
-  }
+    <script>
+      // --- CHART.JS CONFIGURATION ---
+      const ctx = document.getElementById('mainChart').getContext('2d');
 
-  // SÉCURITÉ
-  else if (question.includes("sécurité") || question.includes("bateau") || question.includes("pêcheur")) {
-    answer = "🆘 <strong>Sécurité des pêcheurs :</strong><br>" +
-             "• Risques : dérive, tempêtes, piraterie (golfe de Guinée)<br><br>" +
-             "<strong>Solutions :</strong><br>" +
-             "• Proj_iot suit bateaux GPS + alerte SOS<br>" +
-             "• Gilet de sauvetage obligatoire<br>" +
-             "• Prévision météo avant sortie<br>" +
-             "• Patrouilles côtières";
-  }
+      // Create gradient for chart
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, 'rgba(102, 126, 234, 0.5)');
+      gradient.addColorStop(1, 'rgba(102, 126, 234, 0.0)');
 
-  // SAISONS
-  else if (question.includes("saison") || question.includes("pluie") || question.includes("sèche")) {
-    answer = "📅 <strong>Saisons et pêche en Guinée :</strong><br>" +
-             "• Saison sèche (nov-avril) : eau claire, excellente qualité, meilleure pêche<br>" +
-             "• Saison des pluies (mai-oct) : turbidité haute, pollution accrue, risques santé<br><br>" +
-             "<strong>Solutions :</strong><br>" +
-             "• Proj_iot adapte alertes selon saison<br>" +
-             "• Réduire effort pêche en saison pluie<br>" +
-             "• Diversifier activités (aquaculture)";
-  }
+      const mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: 20 }, (_, i) => `${10 + i}:00`), // Heures simulées
+          datasets: [{
+            label: 'Niveau pH (Temps réel)',
+            data: Array.from({ length: 20 }, () => 7 + Math.random() * 0.5 - 0.25), // Données aléatoires autour de 7
+            borderColor: '#667eea',
+            backgroundColor: gradient,
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              min: 6,
+              max: 8.5,
+              grid: { borderDash: [5, 5] }
+            },
+            x: {
+              grid: { display: false }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index',
+          },
+        }
+      });
 
-  // RÉPONSE PAR DÉFAUT
-  else {
-    answer = "🤖 <strong>Je suis l'Assistant IA spécialisé en pêche en Guinée.</strong><br>" +
-             "Je peux vous aider sur :<br>" +
-             "• Espèces de poissons<br>" +
-             "• Maladies et santé<br>" +
-             "• Milieu de vie (mangroves, estuaires)<br>" +
-             "• Pollution et qualité de l'eau<br>" +
-             "• Sécurité des pêcheurs<br>" +
-             "• Impact des saisons<br><br>" +
-             "Posez-moi une question précise pour une réponse détaillée + solutions !";
-  }
+      // Update chart loop
+      setInterval(() => {
+        const data = mainChart.data.datasets[0].data;
+        const labels = mainChart.data.labels;
 
-  setTimeout(() => {
-    responseDiv.innerHTML = `<div class="fw-bold text-primary mb-3 fs-5">Réponse IA :</div><div>${answer}</div>`;
-  }, 1200);
-}
-</script>
+        // Remove first
+        data.shift();
+        labels.shift();
 
-<%- include('partials/footer') %>
+        // Add new
+        const lastLabelTime = parseInt(labels[labels.length - 1].split(':')[0]);
+        const nextTime = (lastLabelTime + 1) % 24;
+        labels.push(`${nextTime}:00`);
+        data.push(7 + Math.random() * 0.5 - 0.25);
+
+        mainChart.update('none'); // 'none' for smooth animation
+      }, 2000);
+
+      // --- LEAFLET MAP CONFIGURATION ---
+      // Coordonnées approximatives Conakry
+      const map = L.map('map').setView([9.509, -13.712], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Custom Boat Icon
+      const boatIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2942/2942544.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
+      const boatMarker = L.marker([9.509, -13.712], { icon: boatIcon }).addTo(map);
+
+      // Simulate Boat Movement
+      let lat = 9.509;
+      let lng = -13.712;
+      setInterval(() => {
+        lat += (Math.random() - 0.5) * 0.001;
+        lng += (Math.random() - 0.5) * 0.001;
+        boatMarker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]); // Follow boat
+      }, 3000);
+
+
+      // --- AI CHAT LOGIC ---
+      function sendMessage() {
+        const input = document.getElementById('ai-input');
+        const question = input.value.trim();
+        const chatArea = document.getElementById('ai-chat-area');
+
+        if (!question) return;
+
+        // User Message
+        chatArea.innerHTML += `
+      <div class="d-flex justify-content-end mb-3">
+        <div class="bg-white text-dark border p-3 rounded-3 shadow-sm" style="max-width: 80%; border-bottom-right-radius: 0;">
+          ${question}
+        </div>
+      </div>
+    `;
+        input.value = '';
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        // Loading State
+        const loadingId = 'loading-' + Date.now();
+        chatArea.innerHTML += `
+      <div class="d-flex mb-3" id="${loadingId}">
+        <div class="bg-light text-muted rounded-3 p-3" style="max-width: 80%;">
+          <div class="spinner-dots">Thinking...</div>
+        </div>
+      </div>
+    `;
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        // Simulate AI Delay & Logic
+        setTimeout(() => {
+          document.getElementById(loadingId).remove();
+          let answer = getAIAnswer(question.toLowerCase());
+
+          chatArea.innerHTML += `
+          <div class="d-flex mb-3">
+            <div class="bg-primary text-white rounded-3 p-3 shadow-sm" style="max-width: 80%; border-bottom-left-radius: 0;">
+              ${answer}
+            </div>
+          </div>
+        `;
+          chatArea.scrollTop = chatArea.scrollHeight;
+        }, 1000);
+      }
+
+      // Allow Enter key
+      document.getElementById('ai-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      function getAIAnswer(q) {
+        if (q.includes("poisson") || q.includes("espèce")) {
+          return "En Guinée, on retrouve principalement : le Barracuda, le Capitaine, la Carangue, et le Tilapia. Pour une gestion durable, respectez les zones de reproduction.";
+        } else if (q.includes("iot") || q.includes("capteur") || q.includes("technologie")) {
+          return "Notre système IoT utilise des capteurs de pH, de turbidité et de température connectés. Ils permettent de surveiller la qualité de l'eau en temps réel pour optimiser les zones de pêche.";
+        } else if (q.includes("gestion") || q.includes("durable") || q.includes("quota")) {
+          return "La gestion durable implique le respect des quotas, des maillages de filets réglementaires et l'évitement de la surpêche. L'IoT aide à suivre ces indicateurs précisément.";
+        } else if (q.includes("ph") || q.includes("qualité") || q.includes("température")) {
+          return "Une eau de qualité (pH 6.5-8.5, Temp ~26°C) est cruciale. Des variations brusques peuvent indiquer une pollution ou un stress thermique pour les poissons, détectés par nos sondes.";
+        } else if (q.includes("maladie") || q.includes("santé")) {
+          return "Les signes de maladie (taches, nage irrégulière) sont souvent liés à une mauvaise qualité d'eau. Vérifiez les alertes de vos capteurs IoT avant de traiter.";
+        } else if (q.includes("pollution") || q.includes("turbidité")) {
+          return "La turbidité élevée (> 30 NTU) réduit la photosynthèse. Nos capteurs optiques détectent ces anomalies pour prévenir les zones mortes.";
+        } else if (q.includes("sécurité") || q.includes("sos") || q.includes("gps")) {
+          return "Le système de Geofencing et GPS assure votre sécurité. En cas de panne moteur ou de détresse, le bouton SOS envoie votre position exacte aux secours.";
+        } else {
+          return "Je peux vous parler de 'l'IoT', de la 'gestion durable', de la 'qualité de l'eau' ou des 'espèces'. Quel sujet vous intéresse ?";
+        }
+      }
+    </script>
+
+    <!-- DEVICE SHOWCASE SECTION -->
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold text-primary">Nos Technologies Déployées</h2>
+        <p class="lead text-muted">Un réseau de capteurs intelligents connectés par LoRaWAN.</p>
+      </div>
+
+      <div class="row g-4 justify-content-center">
+        <!-- Device 1: ESP32 -->
+        <div class="col-md-3">
+          <div class="glass-card p-0 overflow-hidden h-100">
+            <div style="height: 180px; overflow: hidden;">
+              <img src="/images/comp_esp32.png" class="w-100 h-100"
+                style="object-fit: cover; transition: transform 0.3s ease;"
+                onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                alt="ESP32">
+            </div>
+            <div class="p-3 text-center">
+              <h5 class="fw-bold mb-1">Microcontrôleur ESP32</h5>
+              <p class="small text-muted mb-2">Le cerveau du système (WiFi/LoRa)</p>
+              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">Traitement de
+                données</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device 2: GPS Neo-6M -->
+        <div class="col-md-3">
+          <div class="glass-card p-0 overflow-hidden h-100">
+            <div style="height: 180px; overflow: hidden;">
+              <img src="/images/comp_gps_neo6m.png" class="w-100 h-100"
+                style="object-fit: cover; transition: transform 0.3s ease;"
+                onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                alt="GPS Neo-6M">
+            </div>
+            <div class="p-3 text-center">
+              <h5 class="fw-bold mb-1">Module GPS Neo-6M</h5>
+              <p class="small text-muted mb-2">Géolocalisation précise</p>
+              <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Suivi Temps Réel</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device 3: GSM SIM800L (Using Gateway generic image as fallback) -->
+        <div class="col-md-3">
+          <div class="glass-card p-0 overflow-hidden h-100">
+            <div style="height: 180px; overflow: hidden;">
+              <img src="/images/device_gateway.png" class="w-100 h-100"
+                style="object-fit: cover; transition: transform 0.3s ease;"
+                onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                alt="GSM SIM800L">
+            </div>
+            <div class="p-3 text-center">
+              <h5 class="fw-bold mb-1">Module GSM SIM800L</h5>
+              <p class="small text-muted mb-2">Connectivité mobile & SMS</p>
+              <span class="badge bg-success bg-opacity-10 text-success border border-success">Communication</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device 4: Sensors & Solar (Using pH Sensor generic image as fallback) -->
+        <div class="col-md-3">
+          <div class="glass-card p-0 overflow-hidden h-100">
+            <div style="height: 180px; overflow: hidden;">
+              <img src="/images/sensor_ph.png" class="w-100 h-100"
+                style="object-fit: cover; transition: transform 0.3s ease;"
+                onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                alt="Capteurs & Solaire">
+            </div>
+            <div class="p-3 text-center">
+              <h5 class="fw-bold mb-1">Kit Solaire & Capteurs</h5>
+              <p class="small text-muted mb-2">Autonomie & Mesures (pH, Temp)</p>
+              <span class="badge bg-info bg-opacity-10 text-info border border-info">Energie & Précision</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+    </div>
+
+    <!-- ARCHITECTURE IOT SECTION -->
+    <div class="container-fluid bg-white bg-opacity-50 py-5">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="display-5 fw-bold text-primary">Comment ça Marche ?</h2>
+          <p class="lead text-muted">Le trajet de la donnée, de l'océan à votre écran.</p>
+        </div>
+
+        <div class="row align-items-center justify-content-center text-center">
+
+          <!-- Step 1 -->
+          <div class="col-md-3">
+            <div class="p-4 rounded-circle bg-white shadow-sm d-inline-block mb-3"
+              style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-water text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="fw-bold">1. Collecte</h5>
+            <p class="text-muted small">Les capteurs sur les pirogues mesurent pH, Température et Turbidité.</p>
+          </div>
+
+          <!-- Arrow -->
+          <div class="col-md-1 d-none d-md-block text-primary">
+            <i class="bi bi-arrow-right-circle fs-1 opacity-50"></i>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="col-md-3">
+            <div class="p-4 rounded-circle bg-white shadow-sm d-inline-block mb-3"
+              style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-broadcast text-success" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="fw-bold">2. Transmission</h5>
+            <p class="text-muted small">Envoi sécurisé via LoRaWAN vers les stations terrestres (15km+).</p>
+          </div>
+
+          <!-- Arrow -->
+          <div class="col-md-1 d-none d-md-block text-primary">
+            <i class="bi bi-arrow-right-circle fs-1 opacity-50"></i>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="col-md-3">
+            <div class="p-4 rounded-circle bg-white shadow-sm d-inline-block mb-3"
+              style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-cloud-check text-info" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="fw-bold">3. Analyse IA</h5>
+            <p class="text-muted small">Traitement en temps réel et alertes sur le Dashboard Admin.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNERS SECTION -->
+    <div class="container py-5">
+      <div class="text-center mb-4">
+        <h6 class="fw-bold text-uppercase text-muted letter-spacing-2">ILS NOUS SOUTIENNENT</h6>
+      </div>
+
+      <div class="row justify-content-center align-items-center opacity-75 grayscale-hover">
+        <div class="col-6 col-md-2 text-center mb-3">
+          <div class="fw-bold fs-5 text-secondary"><i class="bi bi-building me-2"></i>Ministère<br>Pêche</div>
+        </div>
+        <div class="col-6 col-md-2 text-center mb-3">
+          <div class="fw-bold fs-5 text-secondary"><i class="bi bi-cpu me-2"></i>FabLab<br>Guinée</div>
+        </div>
+        <div class="col-6 col-md-2 text-center mb-3">
+          <div class="fw-bold fs-5 text-secondary"><i class="bi bi-wifi me-2"></i>Orange<br>Labs</div>
+        </div>
+        <div class="col-6 col-md-2 text-center mb-3">
+          <div class="fw-bold fs-5 text-secondary"><i class="bi bi-globe-africa-americas me-2"></i>Météo<br>GN</div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('partials/footer') %>
