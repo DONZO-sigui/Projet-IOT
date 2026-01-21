@@ -5,6 +5,7 @@ const session = require('express-session');
 
 const app = express();
 
+
 // === 1. Middlewares essentiels (dans cet ordre !) ===
 app.use(express.urlencoded({ extended: true })); // Pour lire les formulaires POST
 app.use(express.json());                         // Pour lire du JSON si besoin
@@ -103,6 +104,45 @@ app.get('/admin/logout', isAdmin, (req, res) => {
     res.redirect('/admin/login');
   });
 });
+
+
+
+// Page d'inscription (GET)
+app.get('/admin/register', (req, res) => {
+  res.render('admin/register', { 
+    title: 'Proj_iot - Inscription Admin',
+    error: null,
+    success: null
+  });
+});
+
+// Traitement du formulaire d'inscription (POST) - simulation pour l'instant
+app.post('/admin/register', (req, res) => {
+  const { username, email, password, confirmPassword } = req.body;
+
+  if (!username || !email || !password || !confirmPassword) {
+    return res.render('admin/register', { 
+      title: 'Proj_iot - Inscription Admin',
+      error: 'Tous les champs sont obligatoires' 
+    });
+  }
+
+  if (password !== confirmPassword) {
+    return res.render('admin/register', { 
+      title: 'Proj_iot - Inscription Admin',
+      error: 'Les mots de passe ne correspondent pas' 
+    });
+  }
+
+  // Ici plus tard : inscription réelle en base de données
+  // Pour l'instant : message de succès
+  return res.render('admin/register', { 
+    title: 'Proj_iot - Inscription Admin',
+    success: 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.' 
+  });
+});
+
+
 
 // === 7. Toutes les routes /admin protégées ===
 app.use('/admin', isAdmin, require('./routes/admin'));
