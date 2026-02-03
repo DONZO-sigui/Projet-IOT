@@ -1,0 +1,130 @@
+<% // Déterminer la page active const currentPath=typeof locals.currentPath !=='undefined' ? locals.currentPath : '' ;
+    %>
+
+    <!-- Bouton toggle sidebar (mobile) -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Sidebar Admin -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <h5><i class="bi bi-gear-fill me-2"></i>Administration</h5>
+            <small class="text-white-50">Système IoT Pêche</small>
+            <div class="mt-2 badge bg-light text-dark bg-opacity-25 w-100">
+                <%= locals.userRole ? locals.userRole.toUpperCase() : 'INVITÉ' %>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <!-- Dashboard -->
+            <div class="sidebar-section-title">TABLEAU DE BORD</div>
+            <a href="/admin/dashboard"
+                class="sidebar-menu-item <%= currentPath === '/admin/dashboard' ? 'active' : '' %>">
+                <i class="bi bi-speedometer2"></i>
+                <span>Vue d'ensemble</span>
+            </a>
+
+            <!-- Surveillance -->
+            <div class="sidebar-section-title">SURVEILLANCE</div>
+            <a href="/admin/ia-qualite"
+                class="sidebar-menu-item <%= currentPath === '/admin/ia-qualite' ? 'active' : '' %>">
+                <i class="bi bi-droplet-fill"></i>
+                <span>Qualité de l'Eau</span>
+            </a>
+            <a href="/admin/gps-tracking"
+                class="sidebar-menu-item <%= currentPath === '/admin/gps-tracking' ? 'active' : '' %>">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>Suivi GPS</span>
+                <% if (typeof locals.activeBoatsCount !=='undefined' && locals.activeBoatsCount> 0) { %>
+                    <span class="sidebar-badge">
+                        <%= locals.activeBoatsCount %>
+                    </span>
+                    <% } %>
+            </a>
+
+            <!-- Gestion -->
+            <div class="sidebar-section-title">GESTION</div>
+            <% if (locals.userRole==='admin' ) { %>
+                <a href="/admin/utilisateurs"
+                    class="sidebar-menu-item <%= currentPath === '/admin/utilisateurs' ? 'active' : '' %>">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Utilisateurs</span>
+                </a>
+                <% } %>
+                    <a href="/admin/zones"
+                        class="sidebar-menu-item <%= currentPath === '/admin/zones' ? 'active' : '' %>">
+                        <i class="bi bi-map-fill"></i>
+                        <span>Zones de Pêche</span>
+                    </a>
+                    <% if (locals.userRole==='admin' ) { %>
+                        <a href="/admin/dispositifs"
+                            class="sidebar-menu-item <%= currentPath === '/admin/dispositifs' ? 'active' : '' %>">
+                            <i class="bi bi-cpu-fill"></i>
+                            <span>Dispositifs IoT</span>
+                        </a>
+                        <% } %>
+
+                            <!-- Rapports -->
+                            <div class="sidebar-section-title">RAPPORTS</div>
+                            <a href="/admin/historique"
+                                class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Historique</span>
+                            </a>
+                            <a href="/admin/alertes"
+                                class="sidebar-menu-item <%= currentPath === '/admin/alertes' ? 'active' : '' %>">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>Alertes</span>
+                                <% if (typeof locals.alertsCount !=='undefined' && locals.alertsCount> 0) { %>
+                                    <span class="sidebar-badge">
+                                        <%= locals.alertsCount %>
+                                    </span>
+                                    <% } %>
+                            </a>
+
+                            <!-- Paramètres -->
+                            <% if (locals.userRole==='admin' ) { %>
+                                <div class="sidebar-section-title">SYSTÈME</div>
+                                <a href="/admin/parametres"
+                                    class="sidebar-menu-item <%= currentPath === '/admin/parametres' ? 'active' : '' %>">
+                                    <i class="bi bi-gear"></i>
+                                    <span>Paramètres</span>
+                                </a>
+                                <% } %>
+        </nav>
+    </aside>
+
+    <script>
+        // Toggle sidebar sur mobile
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('adminSidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const content = document.querySelector('.admin-content');
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // Fermer la sidebar en cliquant en dehors sur mobile
+            document.addEventListener('click', function (event) {
+                if (window.innerWidth <= 992) {
+                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+
+            // Fermer la sidebar après clic sur un lien (mobile)
+            const menuItems = sidebar.querySelectorAll('.sidebar-menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    if (window.innerWidth <= 992) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            });
+        });
+    </script>

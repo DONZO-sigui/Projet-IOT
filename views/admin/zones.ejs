@@ -1,0 +1,385 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Zones de Pêche</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1">Gestion des Zones de Pêche</h1>
+                            <p class="text-muted mb-0">Définir et gérer les zones autorisées et interdites</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="refreshZones()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
+                            </button>
+                            <button class="btn btn-primary" onclick="startDrawing()">
+                                <i class="bi bi-plus-circle me-2"></i>Nouvelle Zone
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="row g-4">
+                        <!-- Carte -->
+                        <div class="col-12 col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-map me-2 text-primary"></i>Carte des Zones</h5>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" id="drawPolygon">
+                                                <i class="bi bi-pentagon"></i> Polygone
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" id="drawCircle">
+                                                <i class="bi bi-circle"></i> Cercle
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" id="deleteZone">
+                                                <i class="bi bi-trash"></i> Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="zones-map" style="height: 600px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des Zones -->
+                        <div class="col-12 col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>Zones Définies</h5>
+                                </div>
+                                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                                    <div id="zones-list">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="bi bi-map fs-1 mb-3 d-block"></i>
+                                            <p>Chargement des zones...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Détails Zone -->
+                    <div class="modal fade" id="zoneModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="zoneModalTitle">Nouvelle Zone</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="zoneForm">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="zoneId" id="zoneId">
+                                        <input type="hidden" name="coordinates" id="zoneCoordinates">
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom de la Zone</label>
+                                            <input type="text" class="form-control" name="name" id="zoneName" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Type de Zone</label>
+                                            <select class="form-select" name="type" id="zoneType" required>
+                                                <option value="fishing">Zone de Pêche Autorisée</option>
+                                                <option value="restricted">Zone Interdite</option>
+                                                <option value="protected">Zone Protégée</option>
+                                                <option value="danger">Zone Dangereuse</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Couleur</label>
+                                            <input type="color" class="form-control form-control-color" name="color"
+                                                id="zoneColor" value="#0000FF">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <textarea class="form-control" name="description" id="zoneDescription"
+                                                rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+        <script>
+            let map;
+            let drawnItems;
+            let zones = [];
+            let currentDrawing = null;
+
+            // Initialiser la carte
+            document.addEventListener('DOMContentLoaded', function () {
+                map = L.map('zones-map').setView([9.52, -13.68], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Couche pour les dessins
+                drawnItems = new L.FeatureGroup();
+                map.addLayer(drawnItems);
+
+                // Contrôles de dessin
+                const drawControl = new L.Control.Draw({
+                    position: 'topright',
+                    draw: {
+                        polyline: false,
+                        rectangle: false,
+                        marker: false,
+                        circlemarker: false
+                    },
+                    edit: {
+                        featureGroup: drawnItems,
+                        remove: true
+                    }
+                });
+                map.addControl(drawControl);
+
+                // Événements de dessin
+                map.on(L.Draw.Event.CREATED, function (e) {
+                    const layer = e.layer;
+                    currentDrawing = layer;
+                    drawnItems.addLayer(layer);
+
+                    // Récupérer les coordonnées
+                    let coordinates;
+                    if (e.layerType === 'polygon') {
+                        coordinates = layer.getLatLngs()[0].map(ll => [ll.lat, ll.lng]);
+                    } else if (e.layerType === 'circle') {
+                        const center = layer.getLatLng();
+                        const radius = layer.getRadius();
+                        coordinates = { center: [center.lat, center.lng], radius };
+                    }
+
+                    document.getElementById('zoneCoordinates').value = JSON.stringify(coordinates);
+                    new bootstrap.Modal(document.getElementById('zoneModal')).show();
+                });
+
+                // Boutons de dessin personnalisés
+                document.getElementById('drawPolygon').addEventListener('click', function () {
+                    new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
+                });
+
+                document.getElementById('drawCircle').addEventListener('click', function () {
+                    new L.Draw.Circle(map, drawControl.options.draw.circle).enable();
+                });
+
+                // Charger les zones
+                loadZones();
+            });
+
+            async function loadZones() {
+                try {
+                    const response = await fetch('/api/zones');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        zones = data.zones;
+                        updateZonesList();
+                        displayZonesOnMap();
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement zones:', error);
+                }
+            }
+
+            function updateZonesList() {
+                const listContainer = document.getElementById('zones-list');
+
+                if (zones.length === 0) {
+                    listContainer.innerHTML = `
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-map fs-1 mb-3 d-block"></i>
+          <p>Aucune zone définie</p>
+        </div>
+      `;
+                    return;
+                }
+
+                listContainer.innerHTML = zones.map(zone => {
+                    const typeColors = {
+                        fishing: 'primary',
+                        restricted: 'danger',
+                        protected: 'success',
+                        danger: 'warning'
+                    };
+                    const typeLabels = {
+                        fishing: 'Pêche Autorisée',
+                        restricted: 'Interdite',
+                        protected: 'Protégée',
+                        danger: 'Dangereuse'
+                    };
+
+                    return `
+        <div class="card mb-3 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="mb-0">${zone.name}</h6>
+              <span class="badge bg-${typeColors[zone.type]}">${typeLabels[zone.type]}</span>
+            </div>
+            <p class="text-muted small mb-2">${zone.description || 'Aucune description'}</p>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary" onclick="centerOnZone(${zone.id})">
+                <i class="bi bi-crosshair"></i> Centrer
+              </button>
+              <button class="btn btn-sm btn-outline-info" onclick="editZone(${zone.id})">
+                <i class="bi bi-pencil"></i> Modifier
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteZoneConfirm(${zone.id})">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+                }).join('');
+            }
+
+            function displayZonesOnMap() {
+                drawnItems.clearLayers();
+
+                zones.forEach(zone => {
+                    let layer;
+                    const coords = zone.coordinates;
+
+                    if (Array.isArray(coords)) {
+                        // Polygone
+                        const latLngs = coords.map(c => [c[0], c[1]]);
+                        layer = L.polygon(latLngs, {
+                            color: zone.color,
+                            fillColor: zone.color,
+                            fillOpacity: 0.3
+                        });
+                    } else if (coords.center && coords.radius) {
+                        // Cercle
+                        layer = L.circle(coords.center, {
+                            radius: coords.radius,
+                            color: zone.color,
+                            fillColor: zone.color,
+                            fillOpacity: 0.3
+                        });
+                    }
+
+                    if (layer) {
+                        layer.bindPopup(`<strong>${zone.name}</strong><br>${zone.description || ''}`);
+                        layer.zoneId = zone.id;
+                        drawnItems.addLayer(layer);
+                    }
+                });
+            }
+
+            function centerOnZone(zoneId) {
+                const zone = zones.find(z => z.id === zoneId);
+                if (!zone) return;
+
+                const coords = zone.coordinates;
+                if (Array.isArray(coords) && coords.length > 0) {
+                    map.setView([coords[0][0], coords[0][1]], 13);
+                } else if (coords.center) {
+                    map.setView(coords.center, 13);
+                }
+            }
+
+            function startDrawing() {
+                new L.Draw.Polygon(map).enable();
+            }
+
+            function refreshZones() {
+                loadZones();
+            }
+
+            async function deleteZoneConfirm(zoneId) {
+                if (!confirm('Êtes-vous sûr de vouloir supprimer cette zone ?')) return;
+
+                try {
+                    const response = await fetch(`/api/zones/${zoneId}`, { method: 'DELETE' });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        loadZones();
+                        alert('Zone supprimée avec succès');
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur suppression zone:', error);
+                    alert('Erreur lors de la suppression');
+                }
+            }
+
+            // Formulaire de zone
+            document.getElementById('zoneForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = {
+                    name: formData.get('name'),
+                    type: formData.get('type'),
+                    color: formData.get('color'),
+                    description: formData.get('description'),
+                    coordinates: formData.get('coordinates')
+                };
+
+                const zoneId = formData.get('zoneId');
+                const url = zoneId ? `/api/zones/${zoneId}` : '/api/zones';
+                const method = zoneId ? 'PUT' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('zoneModal')).hide();
+                        e.target.reset();
+                        loadZones();
+                        alert('Zone enregistrée avec succès !');
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'enregistrement');
+                }
+            });
+        </script>
+
+        <%- include('../partials/footer') %>

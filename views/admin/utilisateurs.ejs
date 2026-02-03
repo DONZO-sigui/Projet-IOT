@@ -1,0 +1,436 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Utilisateurs</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1">Gestion des Utilisateurs</h1>
+                            <p class="text-muted mb-0">Gérer les comptes et permissions</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="refreshUsers()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
+                            </button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="bi bi-person-plus me-2"></i>Nouvel Utilisateur
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistiques -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Total</p>
+                                            <h4 class="mb-0 fw-bold" id="stat-total">0</h4>
+                                        </div>
+                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-people-fill fs-4 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Admins</p>
+                                            <h4 class="mb-0 fw-bold" id="stat-admins">0</h4>
+                                        </div>
+                                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-shield-fill-check fs-4 text-danger"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Pêcheurs</p>
+                                            <h4 class="mb-0 fw-bold" id="stat-pecheurs">0</h4>
+                                        </div>
+                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-person-badge fs-4 text-info"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small">Actifs</p>
+                                            <h4 class="mb-0 fw-bold" id="stat-active">0</h4>
+                                        </div>
+                                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table des Utilisateurs -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-table me-2 text-primary"></i>Liste des Utilisateurs
+                                </h5>
+                                <div class="input-group" style="max-width: 300px;">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="searchInput"
+                                        placeholder="Rechercher...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nom d'utilisateur</th>
+                                            <th>Email</th>
+                                            <th>Rôle</th>
+                                            <th>Statut</th>
+                                            <th>Inscription</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-muted">
+                                                <i class="bi bi-hourglass-split fs-1 d-block mb-3"></i>
+                                                Chargement des utilisateurs...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Ajouter Utilisateur -->
+                    <div class="modal fade" id="addUserModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Nouvel Utilisateur
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="addUserForm">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom d'utilisateur</label>
+                                            <input type="text" class="form-control" name="username" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Mot de passe</label>
+                                            <input type="password" class="form-control" name="password" required
+                                                minlength="6">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rôle</label>
+                                            <select class="form-select" name="role" required>
+                                                <option value="observateur">Observateur</option>
+                                                <option value="pecheur">Pêcheur</option>
+                                                <option value="admin">Administrateur</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Créer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Modifier Utilisateur -->
+                    <div class="modal fade" id="editUserModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Modifier Utilisateur</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="editUserForm">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="userId" id="editUserId">
+                                        <div class="mb-3">
+                                            <label class="form-label">Rôle</label>
+                                            <select class="form-select" name="role" id="editUserRole" required>
+                                                <option value="observateur">Observateur</option>
+                                                <option value="pecheur">Pêcheur</option>
+                                                <option value="admin">Administrateur</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Statut</label>
+                                            <select class="form-select" name="isActive" id="editUserStatus" required>
+                                                <option value="true">Actif</option>
+                                                <option value="false">Inactif</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+        </div>
+
+        <script>
+            let users = [];
+
+            document.addEventListener('DOMContentLoaded', function () {
+                loadUsers();
+                loadStats();
+
+                // Recherche
+                document.getElementById('searchInput').addEventListener('input', function (e) {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = users.filter(u =>
+                        u.username.toLowerCase().includes(search) ||
+                        (u.email && u.email.toLowerCase().includes(search))
+                    );
+                    displayUsers(filtered);
+                });
+            });
+
+            async function loadUsers() {
+                try {
+                    const response = await fetch('/api/users');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        users = data.users || [];
+                        displayUsers(users);
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement utilisateurs:', error);
+                    document.getElementById('users-table-body').innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-5 text-danger">
+            <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+            Erreur de chargement
+          </td>
+        </tr>
+      `;
+                }
+            }
+
+            async function loadStats() {
+                try {
+                    const response = await fetch('/api/users/stats');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        document.getElementById('stat-total').textContent = data.stats.total || 0;
+                        document.getElementById('stat-admins').textContent = data.stats.admins || 0;
+                        document.getElementById('stat-pecheurs').textContent = data.stats.pecheurs || 0;
+                        document.getElementById('stat-active').textContent = data.stats.active || 0;
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement stats:', error);
+                }
+            }
+
+            function displayUsers(usersList) {
+                const tbody = document.getElementById('users-table-body');
+
+                if (usersList.length === 0) {
+                    tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            Aucun utilisateur trouvé
+          </td>
+        </tr>
+      `;
+                    return;
+                }
+
+                tbody.innerHTML = usersList.map(user => {
+                    const roleColors = {
+                        admin: 'danger',
+                        pecheur: 'info',
+                        observateur: 'secondary'
+                    };
+                    const roleLabels = {
+                        admin: 'Administrateur',
+                        pecheur: 'Pêcheur',
+                        observateur: 'Observateur'
+                    };
+
+                    return `
+        <tr>
+          <td>${user.id}</td>
+          <td><strong>${user.username}</strong></td>
+          <td>${user.email || 'N/A'}</td>
+          <td><span class="badge bg-${roleColors[user.role] || 'secondary'}">${roleLabels[user.role] || user.role}</span></td>
+          <td>
+            <span class="badge bg-${user.isActive ? 'success' : 'secondary'}">
+              ${user.isActive ? 'Actif' : 'Inactif'}
+            </span>
+          </td>
+          <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary" onclick="editUser(${user.id})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteUserConfirm(${user.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+                }).join('');
+            }
+
+            function editUser(userId) {
+                const user = users.find(u => u.id === userId);
+                if (!user) return;
+
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUserRole').value = user.role;
+                document.getElementById('editUserStatus').value = user.isActive ? 'true' : 'false';
+
+                new bootstrap.Modal(document.getElementById('editUserModal')).show();
+            }
+
+            async function deleteUserConfirm(userId) {
+                if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+
+                try {
+                    const response = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        loadUsers();
+                        loadStats();
+                        alert('Utilisateur supprimé avec succès');
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur suppression:', error);
+                    alert('Erreur lors de la suppression');
+                }
+            }
+
+            function refreshUsers() {
+                loadUsers();
+                loadStats();
+            }
+
+            // Formulaire d'ajout
+            document.getElementById('addUserForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...data,
+                            confirmPassword: data.password // Auto-confirmation pour l'admin
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+                        e.target.reset();
+                        loadUsers();
+                        loadStats();
+                        alert('Utilisateur créé avec succès !');
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la création');
+                }
+            });
+
+            // Formulaire de modification
+            document.getElementById('editUserForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const userId = formData.get('userId');
+
+                try {
+                    // Mettre à jour le rôle
+                    await fetch(`/api/users/${userId}/role`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: formData.get('role') })
+                    });
+
+                    // Mettre à jour le statut
+                    await fetch(`/api/users/${userId}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isActive: formData.get('isActive') === 'true' })
+                    });
+
+                    bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                    loadUsers();
+                    loadStats();
+                    alert('Utilisateur mis à jour avec succès !');
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la mise à jour');
+                }
+            });
+        </script>
+
+        <%- include('../partials/footer') %>

@@ -1,0 +1,256 @@
+/* === CHARTE GRAPHIQUE IOT "DEEP OCEAN" === */
+:root {
+  /* Palette Principale */
+  --primary-dark: #0f172a;
+  /* Slate 900 - Fond Sidebar */
+  --primary-main: #1e293b;
+  /* Slate 800 - Fond Cards */
+  --primary-light: #334155;
+  /* Slate 700 - Bordures/Hover */
+
+  /* Accents */
+  --accent-blue: #0ea5e9;
+  /* Sky 500 - Actions principales */
+  --accent-teal: #14b8a6;
+  /* Teal 500 - Succès/Nature */
+  --accent-cyan: #06b6d4;
+  /* Cyan 500 - Gradient */
+  --accent-danger: #ef4444;
+  /* Red 500 - Alertes */
+
+  /* Textes */
+  --text-primary: #f8fafc;
+  /* Slate 50 - Titres */
+  --text-secondary: #94a3b8;
+  /* Slate 400 - Sous-titres */
+  --text-muted: #64748b;
+  /* Slate 500 - Texte tertiaire */
+
+  /* Glassmorphism */
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: 1px solid rgba(148, 163, 184, 0.1);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  background-color: #f1f5f9;
+  /* Slate 100 - Fond général clair pour contraste */
+  color: #334155;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* === SIDEBAR (Sombre) === */
+.admin-sidebar {
+  background: linear-gradient(180deg, var(--primary-dark) 0%, #1e293b 100%);
+  color: var(--text-secondary);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-header {
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+}
+
+.sidebar-header h5 {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.sidebar-menu-item {
+  color: var(--text-secondary);
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+  margin: 0.25rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.sidebar-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.sidebar-menu-item.active {
+  background: rgba(14, 165, 233, 0.1);
+  /* Sky 500 with opacity */
+  color: var(--accent-blue);
+  border-left-color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.sidebar-section-title {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin: 1.5rem 1rem 0.5rem;
+}
+
+.sidebar-badge {
+  background-color: var(--accent-danger);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+/* === MAIN CONTENT === */
+.admin-content {
+  background: #f8fafc;
+  /* Slate 50 */
+  min-height: 100vh;
+}
+
+/* Cards (Glassmorphism Light) */
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  /* Slate 200 */
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1.25rem;
+}
+
+.card-header h5 {
+  color: var(--primary-main);
+  font-weight: 600;
+}
+
+/* === BUTTONS === */
+.btn-primary {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: #0284c7;
+  /* Sky 600 */
+  border-color: #0284c7;
+}
+
+.btn-outline-primary {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--accent-blue);
+  color: white;
+}
+
+/* === BADGES === */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+.bg-success {
+  background-color: var(--accent-teal) !important;
+}
+
+.bg-danger {
+  background-color: var(--accent-danger) !important;
+}
+
+.bg-info {
+  background-color: var(--accent-cyan) !important;
+}
+
+/* === MAPS === */
+.leaflet-container {
+  border-radius: 1rem;
+  z-index: 1;
+  /* Fix overlap issues */
+}
+
+/* === RESPONSIVE LAYOUT === */
+@media (max-width: 992px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    height: 100vh;
+    z-index: 1040;
+    transition: left 0.3s ease;
+  }
+
+  .admin-sidebar.show {
+    left: 0;
+  }
+
+  .admin-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .sidebar-toggle {
+    display: block;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1050;
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (min-width: 993px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 100;
+  }
+
+  .admin-content {
+    margin-left: 260px;
+    padding: 2rem;
+    width: calc(100% - 260px);
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+/* === CUSTOM SCROLLBAR === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

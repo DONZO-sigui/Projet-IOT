@@ -1,27 +1,64 @@
+/**
+ * Serveur Principal - IoT Pêche
+ * 
+ * Point d'entrée de l'application Node.js/Express.
+ * Configure le serveur, la base de données, les middlewares et les routes.
+ * 
+ * @author VotreNom
+ * @version 1.0.0
+ */
+
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const User = require('./models/User');
 
 const app = express();
 
+app.set('view cache', false);
 
-// === 1. Middlewares essentiels (dans cet ordre !) ===
-app.use(express.urlencoded({ extended: true })); // Pour lire les formulaires POST
-app.use(express.json());                         // Pour lire du JSON si besoin
+// === 1. Middlewares essentiels ===
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
 
-// Configuration de la session (doit venir après body parser)
+// Configuration de la session
 app.use(session({
-  secret: 'proj_iot_secret_key_2025', // Tu peux changer cette clé
+  secret: 'proj_iot_secret_key_2025',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Met true seulement si tu utilises HTTPS
+  cookie: { secure: false }
 }));
 
-// Middleware pour rendre la session accessible dans toutes les vues
+// Middleware global pour décoder le JWT et passer les infos utilisateur aux vues
+const jwt = require('jsonwebtoken');
 app.use((req, res, next) => {
-  res.locals.isAdmin = req.session.isAdmin || false;
-  res.locals.username = req.session.username || null;
+  const token = req.cookies && req.cookies.authToken;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      res.locals.isAdmin = true;
+      res.locals.username = decoded.username;
+      res.locals.userRole = decoded.role;
+      res.locals.userId = decoded.id;
+    } catch (err) {
+      // Token invalide ou expiré
+      res.locals.isAdmin = false;
+      res.locals.username = null;
+      res.locals.userRole = null;
+      res.locals.userId = null;
+    }
+  } else {
+    // Pas de token
+    res.locals.isAdmin = false;
+    res.locals.username = null;
+    res.locals.userRole = null;
+    res.locals.userId = null;
+  }
+
   next();
 });
 
@@ -29,129 +66,37 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// === 3. Fichiers statiques (CSS, JS, images) ===
+// === 3. Fichiers statiques ===
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === 4. Routes publiques : Login Admin (accessibles sans être connecté) ===
-app.get('/admin/login', (req, res) => {
-  res.render('admin/login', {
-    title: 'Proj_iot - Connexion Admin',
-    error: null
-  });
-});
+// === 4. Créer les tables au démarrage ===
+const Boat = require('./models/Boat');
+const GpsPosition = require('./models/GpsPosition');
+const Zone = require('./models/Zone');
 
-app.post('/admin/login', (req, res) => {
-  const { username, password } = req.body;
+User.createTable();
+Boat.createTable();
+GpsPosition.createTable();
+Zone.createTable();
 
-  // Change 'donzosd' par le mot de passe que tu veux
-  if (username === 'admin' && password === 'donzosd') {
-    req.session.isAdmin = true;
-    req.session.username = username; // Stockage du nom via la session (ou DB)
-    return res.redirect('/admin/ia-qualite');
-  } else {
-    return res.render('admin/login', {
-      title: 'Proj_iot - Connexion Admin',
-      error: 'Identifiants incorrects. Utilise admin / donzosd'
-    });
-  }
-});
+// === 5. Routes d'authentification (register/login/logout) ===
+const authRoutes = require('./routes/authRoutes');
+app.use('/auth', authRoutes);
 
-// === 4b. Routes publiques : Mot de passe oublié ===
-// Affiche le formulaire de récupération
-app.get('/admin/forgot-password', (req, res) => {
-  res.render('admin/forgot-password', {
-    title: 'Proj_iot - Récupération de mot de passe',
-    error: null,
-    success: null
-  });
-});
+// === 6. Routes admin protégées ===
+app.use('/admin', require('./routes/admin'));
 
-// Traite la demande de réinitialisation (Simulation)
-app.post('/admin/forgot-password', (req, res) => {
-  const { email } = req.body;
+// === 7. Routes API ===
+app.use('/api/boats', require('./routes/boats'));
+app.use('/api/zones', require('./routes/zones'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/thingsboard', require('./routes/thingsboard'));
 
-  // Simulation : on fait semblant d'envoyer un mail
-  // Dans un vrai projet, on vérifierait si l'email existe en base de données
-  // puis on enverrait un token via Nodemailer.
-
-  if (email) {
-    // Succès simulé pour l'UX
-    res.render('admin/forgot-password', {
-      title: 'Proj_iot - Email envoyé',
-      error: null,
-      success: `Si un compte est associé à ${email}, vous recevrez un lien de réinitialisation dans quelques instants.`
-    });
-  } else {
-    res.render('admin/forgot-password', {
-      title: 'Proj_iot - Récupération impossible',
-      error: 'Veuillez entrer une adresse email valide.',
-      success: null
-    });
-  }
-});
-
-// === 5. Middleware de protection admin ===
-function isAdmin(req, res, next) {
-  if (req.session && req.session.isAdmin) {
-    return next();
-  }
-  res.redirect('/admin/login');
-}
-
-// === 6. Route de déconnexion ===
-app.get('/admin/logout', isAdmin, (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/admin/login');
-  });
-});
-
-
-
-// Page d'inscription (GET)
-app.get('/admin/register', (req, res) => {
-  res.render('admin/register', { 
-    title: 'Proj_iot - Inscription Admin',
-    error: null,
-    success: null
-  });
-});
-
-// Traitement du formulaire d'inscription (POST) - simulation pour l'instant
-app.post('/admin/register', (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
-
-  if (!username || !email || !password || !confirmPassword) {
-    return res.render('admin/register', { 
-      title: 'Proj_iot - Inscription Admin',
-      error: 'Tous les champs sont obligatoires' 
-    });
-  }
-
-  if (password !== confirmPassword) {
-    return res.render('admin/register', { 
-      title: 'Proj_iot - Inscription Admin',
-      error: 'Les mots de passe ne correspondent pas' 
-    });
-  }
-
-  // Ici plus tard : inscription réelle en base de données
-  // Pour l'instant : message de succès
-  return res.render('admin/register', { 
-    title: 'Proj_iot - Inscription Admin',
-    success: 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.' 
-  });
-});
-
-
-
-// === 7. Toutes les routes /admin protégées ===
-app.use('/admin', isAdmin, require('./routes/admin'));
-
-// === 8. Routes principales du site ===
+// === 8. Routes publiques du site ===
 app.use('/', require('./routes/index'));
 app.use('/rapport', require('./routes/rapport'));
 
-// === 9. Page 404 personnalisée ===
+// === 8. Page 404 ===
 app.use((req, res) => {
   res.status(404).send(`
     <div style="text-align:center; margin-top:100px; font-family: Arial, sans-serif;">
@@ -163,10 +108,11 @@ app.use((req, res) => {
   `);
 });
 
-// === 10. Démarrage du serveur ===
+// === 9. Démarrage du serveur ===
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Proj_iot est lancé avec succès !`);
   console.log(`🌐 Accède au site : http://localhost:${PORT}`);
-  console.log(`🔐 Admin login : http://localhost:${PORT}/admin/login (admin / donzosd)`);
+  console.log(`📝 Inscription : http://localhost:${PORT}/auth/register`);
+  console.log(`🔐 Connexion : http://localhost:${PORT}/auth/login`);
 });

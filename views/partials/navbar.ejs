@@ -1,58 +1,63 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
-  <div class="container">
-    <!-- Logo + Nom du projet à gauche -->
-    <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
-      <!-- Ton logo personnel (ajuste la taille avec height) -->
-      <img src="" alt="Logo Proj_iot" height="40" class="rounded-circle me-3">
-      GROUPE-10
+<nav class="navbar navbar-expand-lg border-bottom bg-white sticky-top py-2"
+  style="box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+  <div class="container-fluid px-4">
+    <!-- Logo -->
+    <a class="navbar-brand d-flex align-items-center fw-bold text-dark" href="/">
+      <div
+        class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+        style="width: 40px; height: 40px;">
+        <i class="bi bi-tsunami"></i>
+      </div>
+      <span style="color: #0f172a;">IOT PÊCHE</span>
     </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <!-- Navigation Publique (Masquée si connecté) -->
+    <% if (!locals.isAdmin) { %>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link fw-medium" href="/">Accueil</a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle fw-medium" href="#" data-bs-toggle="dropdown">Rapport</a>
-          <ul class="dropdown-menu shadow">
-            <li><a class="dropdown-item" href="#">1. Introduction</a></li>
-            <li><a class="dropdown-item" href="#">2. Définition IoT</a></li>
-            <li><a class="dropdown-item" href="#">3. Architecture</a></li>
-            <li><a class="dropdown-item" href="#">4. Technologies</a></li>
-            <li><a class="dropdown-item" href="#">5. Étude du domaine pêche</a></li>
-            <li><a class="dropdown-item" href="#">6. Conception</a></li>
-            <li><a class="dropdown-item" href="#">7. Discussion</a></li>
-            <li><a class="dropdown-item" href="#">8. Conclusion</a></li>
-          </ul>
-        </li>
-      </ul>
-
-      <!-- Bouton Connexion / Déconnexion -->
-      <ul class="navbar-nav">
-        <% if (locals.isAdmin) { %>
-          <li class="nav-item d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center text-white bg-white bg-opacity-10 px-3 py-1 rounded-pill">
-              <i class="bi bi-person-circle me-2"></i>
-              <span class="fw-bold">
-                <%= locals.username %>
-              </span>
-            </div>
-            <a class="nav-link btn btn-danger px-4 fw-bold text-white shadow-sm" href="/admin/logout">
-              <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-3">
+          <li class="nav-item">
+            <a class="nav-link fw-medium text-secondary" href="/">Accueil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-medium text-secondary" href="#dashboard">Dashboard Public</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-primary px-4 rounded-pill fw-medium shadow-sm connection-btn" href="/admin/login">
+              <i class="bi bi-shield-lock me-2"></i>Espace Membre
             </a>
           </li>
-          <% } else { %>
-            <li class="nav-item">
-              <a class="nav-link btn btn-outline-light px-4 fw-medium" href="/admin/login">
-                <i class="bi bi-shield-lock me-2"></i>Connexion Admin
-              </a>
-            </li>
-            <% } %>
-      </ul>
-    </div>
+        </ul>
+      </div>
+      <% } else { %>
+        <!-- Si connecté : Espace Utilisateur Rapide (La sidebar gère le reste) -->
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <div class="d-none d-md-flex align-items-center text-secondary px-3 py-1 rounded-pill bg-light border">
+            <i class="bi bi-person-circle me-2 text-primary"></i>
+            <span class="fw-semibold small">
+              <%= locals.username %>
+            </span>
+            <span class="mx-2 text-muted">|</span>
+            <small class="text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+              <%= locals.userRole || 'Membre' %>
+            </small>
+          </div>
+          <a class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-medium" href="/admin/logout">
+            <i class="bi bi-box-arrow-right me-1"></i>
+            <span class="d-none d-sm-inline">Déconnexion</span>
+          </a>
+        </div>
+        <% } %>
   </div>
 </nav>
+
+<style>
+  /* Style spécifique pour le bouton connexion si non présent dans admin.css */
+  .connection-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.4) !important;
+  }
+</style>

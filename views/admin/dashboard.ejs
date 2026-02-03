@@ -1,0 +1,392 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    <%= locals.userRole==='admin' ? 'Administration' : 'Espace Membre' %>
+                                </a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold text-primary">
+                                <%= locals.userRole==='pecheur' ? 'Tableau de Bord Pêcheur' : 'Tableau de Bord' %>
+                            </h1>
+                            <p class="text-muted mb-0">
+                                <%= locals.userRole==='pecheur' ? 'Vos bateaux et données personnelles'
+                                    : "Vue d'ensemble du système IoT et Qualité Eau" %>
+                            </p>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary shadow-sm" onclick="refreshDashboard()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards avec Données ThingsBoard -->
+                    <div class="row g-4 mb-4">
+                        <!-- Bateaux Actifs -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Bateaux Actifs</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-boats">0</h3>
+                                            <small class="text-success fw-medium"><i class="bi bi-broadcast"></i> En
+                                                ligne</small>
+                                        </div>
+                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                            <i class="bi bi-geo-alt-fill fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Qualité Eau (pH) - Cloud -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">pH Moyen (Cloud)</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-ph">--</h3>
+                                            <small id="kpi-ph-status" class="text-muted"><i class="bi bi-activity"></i>
+                                                En attente...</small>
+                                        </div>
+                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                            <i class="bi bi-droplet-half fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Température Eau - Cloud -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Température</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-temp">--°C</h3>
+                                            <small class="text-success fw-medium"><i class="bi bi-thermometer-half"></i>
+                                                Optimale</small>
+                                        </div>
+                                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                            <i class="bi bi-water fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alertes Critiques -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Alertes Actives</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-alerts">0</h3>
+                                            <small class="text-muted"><i class="bi bi-shield-check"></i> Aucune
+                                                urgence</small>
+                                        </div>
+                                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                                            <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Row -->
+                    <div class="row g-4 mb-4">
+                        <!-- Carte des Bateaux -->
+                        <div class="col-12 col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0 fw-bold text-dark"><i
+                                            class="bi bi-map me-2 text-primary"></i>Positions des Bateaux</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="dashboard-map" style="height: 400px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Données Télémétrie Détail -->
+                        <div class="col-12 col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div
+                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0 fw-bold text-dark"><i
+                                            class="bi bi-cpu me-2 text-primary"></i>Capteurs (Temps Réel)</h5>
+                                    <span class="badge bg-success bg-opacity-10 text-success pulse">LIVE</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <label class="small text-muted mb-1">Turbidité (Eau)</label>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="fw-bold fs-5" id="telemetry-turbidity">-- NTU</span>
+                                            <span class="badge bg-info">Normal</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 25%">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="small text-muted mb-1">Niveau Batterie (Solaire)</label>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="fw-bold fs-5" id="telemetry-battery">-- %</span>
+                                            <span class="text-success"><i
+                                                    class="bi bi-lightning-charge-fill"></i></span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-light border mt-4 mb-0">
+                                        <div class="d-flex">
+                                            <i class="bi bi-info-circle-fill text-primary me-2 mt-1"></i>
+                                            <small class="text-muted">Données synchronisées avec le cloud ThingsBoard
+                                                toutes les 10 secondes.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphiques -->
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0 fw-bold text-dark"><i
+                                            class="bi bi-graph-up me-2 text-primary"></i>Historique Qualité (pH)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="water-quality-chart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0 fw-bold text-dark"><i
+                                            class="bi bi-pie-chart me-2 text-primary"></i>Zones de Pêche</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="zones-chart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+        </div>
+
+        <!-- Styles spécifiques -->
+        <style>
+            .pulse {
+                animation: pulse-animation 2s infinite;
+            }
+
+            @keyframes pulse-animation {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 6px rgba(25, 135, 84, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+                }
+            }
+        </style>
+
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+            let map;
+            let waterChart;
+
+            document.addEventListener('DOMContentLoaded', function () {
+                // 1. Initialiser la carte
+                map = L.map('dashboard-map').setView([9.52, -13.68], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // 2. Charger les données initiales
+                loadDashboardData();
+                loadThingsBoardData();
+                loadMapData(); // Charger les bateaux sur la carte
+
+                // 3. Rafraîchissement automatique (Temps réel)
+                setInterval(loadThingsBoardData, 10000); // Toutes les 10s pour IoT
+
+                // 4. Graphiques
+                initCharts();
+            });
+
+            async function loadDashboardData() {
+                try {
+                    const response = await fetch('/api/dashboard/stats');
+                    const data = await response.json();
+
+                    document.getElementById('kpi-boats').textContent = data.activeBoats || 0;
+                    document.getElementById('kpi-alerts').textContent = data.activeAlerts || 0;
+                } catch (error) {
+                    console.error('Erreur stats:', error);
+                }
+            }
+
+            async function loadMapData() {
+                try {
+                    const response = await fetch('/api/boats');
+                    const data = await response.json();
+
+                    if (data.success && data.boats) {
+                        data.boats.forEach(boat => {
+                            if (boat.lastPosition) {
+                                const marker = L.marker([boat.lastPosition.latitude, boat.lastPosition.longitude])
+                                    .addTo(map)
+                                    .bindPopup(`<strong>${boat.name}</strong><br>Vitesse: ${boat.lastPosition.speed} km/h`);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Erreur carte:', error);
+                }
+            }
+
+            async function loadThingsBoardData() {
+                try {
+                    // En prod, on appellerait /api/thingsboard/telemetry/DEVICE_ID
+                    // Ici on appelle le résumé global
+                    const response = await fetch('/api/thingsboard/dashboard-summary');
+                    const data = await response.json();
+
+                    if (data.success && data.summary) {
+                        const stats = data.summary;
+
+                        // Mise à jour KPI
+                        document.getElementById('kpi-ph').textContent = stats.average_ph;
+                        document.getElementById('kpi-temp').textContent = stats.average_temp + '°C';
+
+                        // Mise à jour status pH
+                        const phStatusElem = document.getElementById('kpi-ph-status');
+                        if (stats.average_ph < 6.5 || stats.average_ph > 8.5) {
+                            phStatusElem.innerHTML = '<i class="bi bi-exclamation-circle text-danger"></i> Anormale';
+                            phStatusElem.className = 'text-danger fw-bold';
+                        } else {
+                            phStatusElem.innerHTML = '<i class="bi bi-check-circle text-success"></i> Normale';
+                            phStatusElem.className = 'text-success';
+                        }
+
+                        // Mise à jour Télémétrie Device (Simulation d'un capteur spécifique)
+                        // Note: Normalement ces données viendraient d'un device spécifique
+                        document.getElementById('telemetry-turbidity').textContent = Math.floor(10 + Math.random() * 5) + ' NTU';
+                        document.getElementById('telemetry-battery').textContent = Math.floor(85 + Math.random() * 10) + ' %';
+                    }
+                } catch (error) {
+                    console.error('Erreur ThingsBoard:', error);
+                }
+            }
+
+            function initCharts() {
+                // Graphique qualité de l'eau
+                const waterCtx = document.getElementById('water-quality-chart').getContext('2d');
+
+                // Créer un dégradé
+                const gradient = waterCtx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(13, 110, 253, 0.5)');
+                gradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+
+                waterChart = new Chart(waterCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({ length: 12 }, (_, i) => `${i * 2}h`),
+                        datasets: [{
+                            label: 'pH Moyen',
+                            data: Array.from({ length: 12 }, () => 7 + Math.random() * 0.5 - 0.25),
+                            borderColor: '#0d6efd',
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 6, max: 8.5 }
+                        }
+                    }
+                });
+
+                // Graphique zones
+                const zonesCtx = document.getElementById('zones-chart').getContext('2d');
+                new Chart(zonesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pêche Autorisée', 'Interdites', 'Protégées'],
+                        datasets: [{
+                            data: [3, 1, 1], // À remplacer par vraies données /api/zones/stats
+                            backgroundColor: ['#0ea5e9', '#ef4444', '#14b8a6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+
+            function refreshDashboard() {
+                loadThingsBoardData();
+                loadDashboardData();
+                // Rafraichir le graphique avec de nouvelles données aléatoires pour l'effet démo
+                if (waterChart) {
+                    waterChart.data.datasets[0].data = Array.from({ length: 12 }, () => 7 + Math.random() * 0.5 - 0.25);
+                    waterChart.update();
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

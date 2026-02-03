@@ -1,0 +1,297 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Suivi GPS</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1">Suivi GPS des Bateaux</h1>
+                            <p class="text-muted mb-0">Localisation en temps réel</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="refreshBoats()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
+                            </button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBoatModal">
+                                <i class="bi bi-plus-circle me-2"></i>Ajouter Bateau
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="row g-4">
+                        <!-- Carte -->
+                        <div class="col-12 col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-map me-2 text-primary"></i>Carte de Suivi</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="gps-map" style="height: 600px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des Bateaux -->
+                        <div class="col-12 col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>Bateaux Actifs</h5>
+                                </div>
+                                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                                    <div id="boats-list">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="bi bi-geo-alt fs-1 mb-3 d-block"></i>
+                                            <p>Chargement des bateaux...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails Bateau (Modal) -->
+                    <div class="modal fade" id="boatDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Détails du Bateau</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body" id="boat-details-content">
+                                    <!-- Contenu chargé dynamiquement -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ajouter Bateau (Modal) -->
+                    <div class="modal fade" id="addBoatModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Ajouter un Bateau</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="addBoatForm">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom du Bateau</label>
+                                            <input type="text" class="form-control" name="name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Numéro d'Immatriculation</label>
+                                            <input type="text" class="form-control" name="registrationNumber" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">ID Dispositif (ESP32)</label>
+                                            <input type="text" class="form-control" name="deviceId">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+            let map;
+            let markers = {};
+            let boats = [];
+
+            // Initialiser la carte
+            document.addEventListener('DOMContentLoaded', function () {
+                map = L.map('gps-map').setView([9.52, -13.68], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Charger les bateaux
+                loadBoats();
+
+                // Actualiser toutes les 30 secondes
+                setInterval(loadBoats, 30000);
+            });
+
+            async function loadBoats() {
+                try {
+                    const response = await fetch('/api/boats');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        boats = data.boats;
+                        updateBoatsList();
+                        updateMapMarkers();
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement bateaux:', error);
+                }
+            }
+
+            function updateBoatsList() {
+                const listContainer = document.getElementById('boats-list');
+
+                if (boats.length === 0) {
+                    listContainer.innerHTML = `
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-geo-alt fs-1 mb-3 d-block"></i>
+          <p>Aucun bateau enregistré</p>
+        </div>
+      `;
+                    return;
+                }
+
+                listContainer.innerHTML = boats.map(boat => {
+                    const statusClass = boat.status === 'active' ? 'success' : 'secondary';
+                    const hasPosition = boat.lastPosition;
+
+                    return `
+        <div class="card mb-3 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">${boat.name}</h6>
+                <small class="text-muted">${boat.registration_number || 'N/A'}</small>
+              </div>
+              <span class="badge bg-${statusClass}">${boat.status}</span>
+            </div>
+            ${hasPosition ? `
+              <div class="mt-2 small">
+                <div><i class="bi bi-geo-alt text-primary me-1"></i>${boat.lastPosition.latitude.toFixed(4)}, ${boat.lastPosition.longitude.toFixed(4)}</div>
+                <div><i class="bi bi-speedometer text-info me-1"></i>${boat.lastPosition.speed || 0} km/h</div>
+              </div>
+            ` : '<div class="mt-2 small text-muted">Aucune position GPS</div>'}
+            <div class="mt-2">
+              <button class="btn btn-sm btn-outline-primary" onclick="centerOnBoat(${boat.id})">
+                <i class="bi bi-crosshair"></i> Centrer
+              </button>
+              <button class="btn btn-sm btn-outline-info" onclick="showBoatDetails(${boat.id})">
+                <i class="bi bi-info-circle"></i> Détails
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+                }).join('');
+            }
+
+            function updateMapMarkers() {
+                // Supprimer les anciens marqueurs
+                Object.values(markers).forEach(marker => map.removeLayer(marker));
+                markers = {};
+
+                // Ajouter les nouveaux marqueurs
+                boats.forEach(boat => {
+                    if (boat.lastPosition) {
+                        const marker = L.marker([boat.lastPosition.latitude, boat.lastPosition.longitude])
+                            .addTo(map)
+                            .bindPopup(`
+            <strong>${boat.name}</strong><br>
+            Vitesse: ${boat.lastPosition.speed || 0} km/h<br>
+            <small>${new Date(boat.lastPosition.timestamp).toLocaleString()}</small>
+          `);
+
+                        markers[boat.id] = marker;
+                    }
+                });
+            }
+
+            function centerOnBoat(boatId) {
+                const boat = boats.find(b => b.id === boatId);
+                if (boat && boat.lastPosition) {
+                    map.setView([boat.lastPosition.latitude, boat.lastPosition.longitude], 14);
+                    markers[boatId].openPopup();
+                }
+            }
+
+            function showBoatDetails(boatId) {
+                const boat = boats.find(b => b.id === boatId);
+                if (!boat) return;
+
+                const content = `
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Nom:</strong> ${boat.name}</p>
+          <p><strong>Immatriculation:</strong> ${boat.registration_number || 'N/A'}</p>
+          <p><strong>Propriétaire:</strong> ${boat.owner_name || 'Non assigné'}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Statut:</strong> <span class="badge bg-${boat.status === 'active' ? 'success' : 'secondary'}">${boat.status}</span></p>
+          <p><strong>Dispositif:</strong> ${boat.device_id || 'N/A'}</p>
+        </div>
+      </div>
+      ${boat.lastPosition ? `
+        <hr>
+        <h6>Dernière Position</h6>
+        <p><strong>Coordonnées:</strong> ${boat.lastPosition.latitude.toFixed(6)}, ${boat.lastPosition.longitude.toFixed(6)}</p>
+        <p><strong>Vitesse:</strong> ${boat.lastPosition.speed || 0} km/h</p>
+        <p><strong>Cap:</strong> ${boat.lastPosition.heading || 0}°</p>
+        <p><strong>Horodatage:</strong> ${new Date(boat.lastPosition.timestamp).toLocaleString()}</p>
+      ` : '<p class="text-muted">Aucune position GPS disponible</p>'}
+    `;
+
+                document.getElementById('boat-details-content').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('boatDetailsModal')).show();
+            }
+
+            function refreshBoats() {
+                loadBoats();
+            }
+
+            // Formulaire d'ajout de bateau
+            document.getElementById('addBoatForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('/api/boats', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('addBoatModal')).hide();
+                        e.target.reset();
+                        loadBoats();
+                        alert('Bateau ajouté avec succès !');
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'ajout du bateau');
+                }
+            });
+        </script>
+
+        <%- include('../partials/footer') %>
