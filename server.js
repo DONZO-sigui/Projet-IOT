@@ -96,7 +96,7 @@ app.use('/api/thingsboard', require('./routes/thingsboard'));
 app.use('/', require('./routes/index'));
 app.use('/rapport', require('./routes/rapport'));
 
-// === 8. Page 404 ===
+// === 9. Page 404 ===
 app.use((req, res) => {
   res.status(404).send(`
     <div style="text-align:center; margin-top:100px; font-family: Arial, sans-serif;">
@@ -108,7 +108,7 @@ app.use((req, res) => {
   `);
 });
 
-// === 9. Démarrage du serveur ===
+// === 10. Démarrage du serveur ===
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Proj_iot est lancé avec succès !`);

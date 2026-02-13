@@ -166,8 +166,9 @@
                                         <div class="mb-3">
                                             <label class="form-label">Rôle</label>
                                             <select class="form-select" name="role" required>
-                                                <option value="observateur">Observateur</option>
                                                 <option value="pecheur">Pêcheur</option>
+                                                <option value="observateur">Observateur</option>
+                                                <option value="technicien">Technicien</option>
                                                 <option value="admin">Administrateur</option>
                                             </select>
                                         </div>
@@ -196,8 +197,9 @@
                                         <div class="mb-3">
                                             <label class="form-label">Rôle</label>
                                             <select class="form-select" name="role" id="editUserRole" required>
-                                                <option value="observateur">Observateur</option>
                                                 <option value="pecheur">Pêcheur</option>
+                                                <option value="observateur">Observateur</option>
+                                                <option value="technicien">Technicien</option>
                                                 <option value="admin">Administrateur</option>
                                             </select>
                                         </div>
@@ -297,12 +299,14 @@
                     const roleColors = {
                         admin: 'danger',
                         pecheur: 'info',
-                        observateur: 'secondary'
+                        observateur: 'secondary',
+                        technicien: 'warning'
                     };
                     const roleLabels = {
                         admin: 'Administrateur',
                         pecheur: 'Pêcheur',
-                        observateur: 'Observateur'
+                        observateur: 'Observateur',
+                        technicien: 'Technicien'
                     };
 
                     return `

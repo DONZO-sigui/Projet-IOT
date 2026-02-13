@@ -18,80 +18,100 @@
 
         <nav class="sidebar-menu">
             <!-- Dashboard -->
-            <div class="sidebar-section-title">TABLEAU DE BORD</div>
+            <div class="sidebar-section-title">
+                <i class="bi bi-speedometer2 me-1"></i>
+                TABLEAU DE BORD
+            </div>
             <a href="/admin/dashboard"
-                class="sidebar-menu-item <%= currentPath === '/admin/dashboard' ? 'active' : '' %>">
-                <i class="bi bi-speedometer2"></i>
+                class="sidebar-menu-item <%= currentPath === '/admin/dashboard' ? 'active' : '' %>"
+                title="Vue d'ensemble du système">
+                <i class="bi bi-grid-fill"></i>
                 <span>Vue d'ensemble</span>
             </a>
 
-            <!-- Surveillance -->
-            <div class="sidebar-section-title">SURVEILLANCE</div>
+            <!-- Surveillance en temps réel -->
+            <div class="sidebar-section-title">
+                <i class="bi bi-broadcast me-1"></i>
+                SURVEILLANCE EN TEMPS RÉEL
+            </div>
             <a href="/admin/ia-qualite"
-                class="sidebar-menu-item <%= currentPath === '/admin/ia-qualite' ? 'active' : '' %>">
+                class="sidebar-menu-item <%= currentPath === '/admin/ia-qualite' ? 'active' : '' %>"
+                title="Surveillance de la qualité de l'eau">
                 <i class="bi bi-droplet-fill"></i>
                 <span>Qualité de l'Eau</span>
             </a>
             <a href="/admin/gps-tracking"
-                class="sidebar-menu-item <%= currentPath === '/admin/gps-tracking' ? 'active' : '' %>">
+                class="sidebar-menu-item <%= currentPath === '/admin/gps-tracking' ? 'active' : '' %>"
+                title="Suivi GPS des bateaux">
                 <i class="bi bi-geo-alt-fill"></i>
                 <span>Suivi GPS</span>
                 <% if (typeof locals.activeBoatsCount !=='undefined' && locals.activeBoatsCount> 0) { %>
-                    <span class="sidebar-badge">
+                    <span class="sidebar-badge" title="<%= locals.activeBoatsCount %> bateau(x) actif(s)">
                         <%= locals.activeBoatsCount %>
                     </span>
                     <% } %>
             </a>
+            <a href="/admin/alertes" class="sidebar-menu-item <%= currentPath === '/admin/alertes' ? 'active' : '' %>"
+                title="Alertes actives du système">
+                <i class="bi bi-bell-fill"></i>
+                <span>Alertes Actives</span>
+                <% if (typeof locals.alertsCount !=='undefined' && locals.alertsCount> 0) { %>
+                    <span class="sidebar-badge sidebar-badge-danger" title="<%= locals.alertsCount %> alerte(s)">
+                        <%= locals.alertsCount %>
+                    </span>
+                    <% } %>
+            </a>
 
-            <!-- Gestion -->
-            <div class="sidebar-section-title">GESTION</div>
+            <!-- Gestion des ressources -->
+            <div class="sidebar-section-title">
+                <i class="bi bi-layers-fill me-1"></i>
+                GESTION DES RESSOURCES
+            </div>
+            <a href="/admin/zones" class="sidebar-menu-item <%= currentPath === '/admin/zones' ? 'active' : '' %>"
+                title="Gestion des zones de pêche">
+                <i class="bi bi-map-fill"></i>
+                <span>Zones de Pêche</span>
+            </a>
             <% if (locals.userRole==='admin' ) { %>
-                <a href="/admin/utilisateurs"
-                    class="sidebar-menu-item <%= currentPath === '/admin/utilisateurs' ? 'active' : '' %>">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Utilisateurs</span>
+                <a href="/admin/dispositifs"
+                    class="sidebar-menu-item <%= currentPath === '/admin/dispositifs' ? 'active' : '' %>"
+                    title="Gestion des dispositifs IoT">
+                    <i class="bi bi-cpu-fill"></i>
+                    <span>Dispositifs IoT</span>
                 </a>
                 <% } %>
-                    <a href="/admin/zones"
-                        class="sidebar-menu-item <%= currentPath === '/admin/zones' ? 'active' : '' %>">
-                        <i class="bi bi-map-fill"></i>
-                        <span>Zones de Pêche</span>
-                    </a>
+
+                    <!-- Administration -->
                     <% if (locals.userRole==='admin' ) { %>
-                        <a href="/admin/dispositifs"
-                            class="sidebar-menu-item <%= currentPath === '/admin/dispositifs' ? 'active' : '' %>">
-                            <i class="bi bi-cpu-fill"></i>
-                            <span>Dispositifs IoT</span>
+                        <div class="sidebar-section-title">
+                            <i class="bi bi-shield-fill-check me-1"></i>
+                            ADMINISTRATION
+                        </div>
+                        <a href="/admin/utilisateurs"
+                            class="sidebar-menu-item <%= currentPath === '/admin/utilisateurs' ? 'active' : '' %>"
+                            title="Gestion des utilisateurs">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Utilisateurs</span>
+                        </a>
+                        <a href="/admin/parametres"
+                            class="sidebar-menu-item <%= currentPath === '/admin/parametres' ? 'active' : '' %>"
+                            title="Paramètres du système">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Paramètres Système</span>
                         </a>
                         <% } %>
 
-                            <!-- Rapports -->
-                            <div class="sidebar-section-title">RAPPORTS</div>
+                            <!-- Rapports & Historique -->
+                            <div class="sidebar-section-title">
+                                <i class="bi bi-file-earmark-bar-graph me-1"></i>
+                                RAPPORTS & HISTORIQUE
+                            </div>
                             <a href="/admin/historique"
-                                class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>">
+                                class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>"
+                                title="Historique des données">
                                 <i class="bi bi-clock-history"></i>
-                                <span>Historique</span>
+                                <span>Historique des Données</span>
                             </a>
-                            <a href="/admin/alertes"
-                                class="sidebar-menu-item <%= currentPath === '/admin/alertes' ? 'active' : '' %>">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                <span>Alertes</span>
-                                <% if (typeof locals.alertsCount !=='undefined' && locals.alertsCount> 0) { %>
-                                    <span class="sidebar-badge">
-                                        <%= locals.alertsCount %>
-                                    </span>
-                                    <% } %>
-                            </a>
-
-                            <!-- Paramètres -->
-                            <% if (locals.userRole==='admin' ) { %>
-                                <div class="sidebar-section-title">SYSTÈME</div>
-                                <a href="/admin/parametres"
-                                    class="sidebar-menu-item <%= currentPath === '/admin/parametres' ? 'active' : '' %>">
-                                    <i class="bi bi-gear"></i>
-                                    <span>Paramètres</span>
-                                </a>
-                                <% } %>
         </nav>
     </aside>
 

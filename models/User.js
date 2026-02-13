@@ -93,6 +93,80 @@ class User {
   static async verifyPassword(plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }
+
+  /**
+   * Récupérer tous les utilisateurs
+   * @returns {Promise<Array>} Liste de tous les utilisateurs (sans mots de passe)
+   */
+  static async findAll() {
+    const query = 'SELECT id, username, email, role, active AS "isActive", created_at, updated_at FROM users ORDER BY created_at DESC';
+    const result = await pool.query(query);
+    return result.rows;
+  }
+
+  /**
+   * Obtenir les statistiques des utilisateurs
+   * @returns {Promise<Object>} Statistiques (total, par rôle, actifs)
+   */
+  static async getStats() {
+    const query = `
+      SELECT 
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE role = 'admin') AS admins,
+        COUNT(*) FILTER (WHERE role = 'pecheur') AS pecheurs,
+        COUNT(*) FILTER (WHERE role = 'observateur') AS observateurs,
+        COUNT(*) FILTER (WHERE role = 'technicien') AS techniciens,
+        COUNT(*) FILTER (WHERE active = true) AS active
+      FROM users
+    `;
+    const result = await pool.query(query);
+    return result.rows[0];
+  }
+
+  /**
+   * Mettre à jour le rôle d'un utilisateur
+   * @param {number} id - ID de l'utilisateur
+   * @param {string} role - Nouveau rôle
+   * @returns {Promise<Object>} L'utilisateur mis à jour
+   */
+  static async updateRole(id, role) {
+    const query = `
+      UPDATE users 
+      SET role = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $2 
+      RETURNING id, username, email, role, active, updated_at
+    `;
+    const result = await pool.query(query, [role, id]);
+    return result.rows[0];
+  }
+
+  /**
+   * Mettre à jour le statut actif d'un utilisateur
+   * @param {number} id - ID de l'utilisateur
+   * @param {boolean} isActive - Nouveau statut
+   * @returns {Promise<Object>} L'utilisateur mis à jour
+   */
+  static async updateStatus(id, isActive) {
+    const query = `
+      UPDATE users 
+      SET active = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $2 
+      RETURNING id, username, email, role, active, updated_at
+    `;
+    const result = await pool.query(query, [isActive, id]);
+    return result.rows[0];
+  }
+
+  /**
+   * Supprimer un utilisateur
+   * @param {number} id - ID de l'utilisateur à supprimer
+   * @returns {Promise<boolean>} True si supprimé avec succès
+   */
+  static async delete(id) {
+    const query = 'DELETE FROM users WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    return result.rowCount > 0;
+  }
 }
 
 module.exports = User;

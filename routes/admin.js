@@ -58,6 +58,19 @@ router.get('/utilisateurs',
   userController.usersPage
 );
 
+// Paramètres système (admin uniquement)
+router.get('/parametres',
+  authMiddleware.authenticate,
+  authMiddleware.authorize(['admin']),
+  (req, res) => {
+    res.locals.currentPath = '/admin/parametres';
+    res.render('admin/parametres', {
+      title: 'Proj_iot - Paramètres Système',
+      user: req.user
+    });
+  }
+);
+
 // Route de déconnexion
 router.get('/logout', authController.logout);
 

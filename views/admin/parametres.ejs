@@ -1,0 +1,271 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Paramètres Système</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold text-primary">Paramètres Système</h1>
+                            <p class="text-muted mb-0">Configuration globale de l'application IoT</p>
+                        </div>
+                        <button class="btn btn-outline-primary" onclick="saveSettings()">
+                            <i class="bi bi-save me-2"></i>Enregistrer
+                        </button>
+                    </div>
+
+                    <!-- Paramètres Généraux -->
+                    <div class="row g-4">
+                        <!-- Application -->
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-gear-fill me-2 text-primary"></i>Application</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Nom de l'application</label>
+                                        <input type="text" class="form-control" value="Système IoT Pêche" id="appName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Description</label>
+                                        <textarea class="form-control" rows="3"
+                                            id="appDescription">Système de surveillance et gestion pour la pêche maritime</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Mode maintenance</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="maintenanceMode">
+                                            <label class="form-check-label" for="maintenanceMode">
+                                                Activer le mode maintenance
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Les utilisateurs non-admin ne pourront pas accéder au
+                                            système</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sécurité -->
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-shield-fill-check me-2 text-primary"></i>Sécurité
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Durée de session (jours)</label>
+                                        <input type="number" class="form-control" value="7" min="1" max="30"
+                                            id="sessionDuration">
+                                        <small class="text-muted">Durée avant expiration du token JWT</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Longueur minimale du mot de passe</label>
+                                        <input type="number" class="form-control" value="6" min="4" max="20"
+                                            id="minPasswordLength">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Tentatives de connexion max</label>
+                                        <input type="number" class="form-control" value="5" min="3" max="10"
+                                            id="maxLoginAttempts">
+                                        <small class="text-muted">Nombre de tentatives avant blocage temporaire</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IoT & Capteurs -->
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-cpu-fill me-2 text-primary"></i>IoT & Capteurs</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Intervalle de synchronisation
+                                            (secondes)</label>
+                                        <input type="number" class="form-control" value="10" min="5" max="60"
+                                            id="syncInterval">
+                                        <small class="text-muted">Fréquence de mise à jour des données capteurs</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Seuil pH minimum</label>
+                                        <input type="number" class="form-control" value="6.5" step="0.1" min="0"
+                                            max="14" id="phMin">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Seuil pH maximum</label>
+                                        <input type="number" class="form-control" value="8.5" step="0.1" min="0"
+                                            max="14" id="phMax">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Température maximale (°C)</label>
+                                        <input type="number" class="form-control" value="35" min="0" max="50"
+                                            id="tempMax">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="col-12 col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-bell-fill me-2 text-primary"></i>Notifications</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Alertes par email</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="emailAlerts" checked>
+                                            <label class="form-check-label" for="emailAlerts">
+                                                Envoyer des alertes par email
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Email administrateur</label>
+                                        <input type="email" class="form-control" value="admin@iot-peche.com"
+                                            id="adminEmail">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Notifications en temps réel</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="realtimeNotifs" checked>
+                                            <label class="form-check-label" for="realtimeNotifs">
+                                                Activer les notifications push
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Base de données -->
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i class="bi bi-database-fill me-2 text-primary"></i>Base de
+                                        données
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Statut de connexion</label>
+                                                <div>
+                                                    <span class="badge bg-success fs-6">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Connecté
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Type de base</label>
+                                                <div class="text-muted">PostgreSQL</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Actions</label>
+                                                <div>
+                                                    <button class="btn btn-sm btn-outline-primary me-2"
+                                                        onclick="testConnection()">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>Tester
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                        onclick="clearCache()">
+                                                        <i class="bi bi-trash me-1"></i>Vider le cache
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informations système -->
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0"><i
+                                            class="bi bi-info-circle-fill me-2 text-primary"></i>Informations
+                                        système</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <p class="text-muted mb-1 small">Version</p>
+                                            <p class="fw-bold">1.0.0</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="text-muted mb-1 small">Node.js</p>
+                                            <p class="fw-bold" id="nodeVersion">-</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="text-muted mb-1 small">Environnement</p>
+                                            <p class="fw-bold">Development</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="text-muted mb-1 small">Démarré depuis</p>
+                                            <p class="fw-bold" id="uptime">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+        </div>
+
+        <script>
+            // Afficher la version Node.js
+            document.getElementById('nodeVersion').textContent = 'v' + (process?.version || 'N/A');
+
+            // Calculer l'uptime (simulation)
+            const startTime = new Date();
+            function updateUptime() {
+                const now = new Date();
+                const diff = Math.floor((now - startTime) / 1000);
+                const hours = Math.floor(diff / 3600);
+                const minutes = Math.floor((diff % 3600) / 60);
+                document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+            }
+            updateUptime();
+            setInterval(updateUptime, 60000);
+
+            function saveSettings() {
+                // TODO: Implémenter la sauvegarde des paramètres
+                alert('Paramètres enregistrés avec succès !\n\nNote: La sauvegarde persistante sera implémentée prochainement.');
+            }
+
+            function testConnection() {
+                alert('✅ Connexion à la base de données réussie !');
+            }
+
+            function clearCache() {
+                if (confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+                    alert('Cache vidé avec succès !');
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>
