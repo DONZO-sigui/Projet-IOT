@@ -7,6 +7,22 @@ const zoneController = require('../controllers/zoneController');
 const userController = require('../controllers/userController');
 const Boat = require('../models/Boat');
 const User = require('../models/User');
+const Alert = require('../models/Alert');
+const settingsController = require('../controllers/settingsController');
+
+// Middleware pour injecter le nombre d'alertes actives dans toutes les vues admin
+async function injectAlertsCount(req, res, next) {
+  try {
+    if (req.user) {
+      const stats = await Alert.getStats();
+      res.locals.alertsCount = parseInt(stats.active) || 0;
+    }
+  } catch (err) {
+    // Ne pas bloquer le rendu si la requête échoue
+    res.locals.alertsCount = 0;
+  }
+  next();
+}
 
 // Routes publiques
 router.get('/login', (req, res) => {
@@ -20,7 +36,7 @@ router.get('/register', (req, res) => {
 // Routes protégées (nécessite authentification)
 
 // Dashboard principal
-router.get('/dashboard', authMiddleware.authenticate, async (req, res) => {
+router.get('/dashboard', authMiddleware.authenticate, injectAlertsCount, async (req, res) => {
   try {
     res.locals.currentPath = '/admin/dashboard';
     const activeBoatsCount = await Boat.countActive();
@@ -36,32 +52,52 @@ router.get('/dashboard', authMiddleware.authenticate, async (req, res) => {
   }
 });
 
-// Qualité de l'eau
-router.get('/ia-qualite', authMiddleware.authenticate, (req, res) => {
-  res.locals.currentPath = '/admin/ia-qualite';
-  res.render('admin/ia-qualite', {
-    title: 'Proj_iot - IA Qualité Eau (Admin)',
-    user: req.user
+// Qualité de l'eau (admin uniquement)
+router.get('/ia-qualite',
+  authMiddleware.authenticate,
+  authMiddleware.authorize(['admin', 'pecheur']),
+  injectAlertsCount,
+  (req, res) => {
+    res.locals.currentPath = '/admin/ia-qualite';
+    res.render('admin/ia-qualite', {
+      title: 'Proj_iot - IA Qualité Eau (Admin)',
+      user: req.user
+    });
   });
-});
 
-// Suivi GPS
-router.get('/gps-tracking', authMiddleware.authenticate, boatController.trackingPage);
+// Suivi GPS (accessible à tous, mais filtré par contrôleur)
+router.get('/gps-tracking', authMiddleware.authenticate, injectAlertsCount, boatController.trackingPage);
 
-// Gestion des zones
-router.get('/zones', authMiddleware.authenticate, zoneController.zonesPage);
+// Gestion des zones (accessible à tous, lecture seule pour pecheur?)
+// Pour l'instant on laisse accessible, le contrôleur filtre peut-être
+router.get('/zones', authMiddleware.authenticate, injectAlertsCount, zoneController.zonesPage);
+
+// Gestion des alertes (admin uniquement pour la vue globale)
+router.get('/alertes',
+  authMiddleware.authenticate,
+  authMiddleware.authorize(['admin', 'pecheur']),
+  injectAlertsCount,
+  (req, res) => {
+    res.locals.currentPath = '/admin/alertes';
+    res.render('admin/alertes', {
+      title: 'Proj_iot - Alertes',
+      user: req.user
+    });
+  });
 
 // Gestion des utilisateurs (admin uniquement)
 router.get('/utilisateurs',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin']),
+  authMiddleware.authorize(['admin', 'pecheur']),
+  injectAlertsCount,
   userController.usersPage
 );
 
 // Paramètres système (admin uniquement)
 router.get('/parametres',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin']),
+  authMiddleware.authorize(['admin', 'pecheur']),
+  injectAlertsCount,
   (req, res) => {
     res.locals.currentPath = '/admin/parametres';
     res.render('admin/parametres', {
@@ -71,7 +107,24 @@ router.get('/parametres',
   }
 );
 
+// Historique des données (admin + pecheur)
+router.get('/historique',
+  authMiddleware.authenticate,
+  authMiddleware.authorize(['admin', 'pecheur']),
+  injectAlertsCount,
+  (req, res) => {
+    res.locals.currentPath = '/admin/historique';
+    res.render('admin/historique', {
+      title: 'Proj_iot - Historique des Données',
+      user: req.user
+    });
+  }
+);
+
 // Route de déconnexion
 router.get('/logout', authController.logout);
+
+// API pour sauvegarder les paramètres
+router.post('/settings', authMiddleware.authenticate, authMiddleware.authorize(['admin']), settingsController.updateSettings);
 
 module.exports = router;

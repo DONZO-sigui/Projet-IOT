@@ -1,10 +1,12 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const ActivityLog = require('../models/ActivityLog');
 
 // INSCRIPTION
 exports.register = async (req, res) => {
   try {
     const { username, email, password, confirmPassword, role } = req.body;
+    console.log('📝 Tentative inscription:', { username, email, role });
 
     // Validation
     if (!username || !email || !password || !confirmPassword) {
@@ -34,11 +36,15 @@ exports.register = async (req, res) => {
     // Créer l'utilisateur
     const user = await User.create(username, email, password, role || 'pecheur');
 
+    // Log activity
+    await ActivityLog.log(user.id, 'REGISTER', 'user', user.id, `Inscription utilisateur ${username}`);
+
     return res.render('admin/register', {
       title: 'Projet_iot - Inscription',
       error: null,
       success: `Compte créé avec succès ! Bienvenue ${user.username}`
     });
+
   } catch (err) {
     console.error('Erreur inscription:', err);
     return res.render('admin/register', {
@@ -99,6 +105,11 @@ exports.login = async (req, res) => {
 
     console.log('Cookie authToken défini');
 
+    console.log('Cookie authToken défini');
+
+    // Log activity
+    await ActivityLog.log(user.id, 'LOGIN', 'user', user.id, `Connexion utilisateur ${username}`, req.ip);
+
     return res.redirect('/admin/dashboard'); // Redirection vers le dashboard principal
   } catch (err) {
     console.error('Erreur connexion:', err);
@@ -110,7 +121,12 @@ exports.login = async (req, res) => {
 };
 
 // DÉCONNEXION
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
+  const userId = req.user ? req.user.id : res.locals.userId;
+
+  if (userId) {
+    await ActivityLog.log(userId, 'LOGOUT', 'user', userId, 'Déconnexion utilisateur');
+  }
   res.clearCookie('authToken');
-  res.redirect('/admin/login');
+  res.redirect('/');
 };

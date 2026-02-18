@@ -1,4 +1,5 @@
 const Zone = require('../models/Zone');
+const ActivityLog = require('../models/ActivityLog');
 
 /**
  * Page de gestion des zones
@@ -65,6 +66,9 @@ exports.createZone = async (req, res) => {
         const createdBy = req.user ? req.user.id : null;
         const zone = await Zone.create(name, type, coordinates, description, color, createdBy);
 
+        // Log activity
+        await ActivityLog.log(req.user.id, 'CREATE_ZONE', 'zone', zone.id, `Création zone ${name}`);
+
         res.json({ success: true, zone });
     } catch (error) {
         console.error('Erreur création zone:', error);
@@ -87,6 +91,9 @@ exports.updateZone = async (req, res) => {
         }
 
         res.json({ success: true, message: 'Zone mise à jour' });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'UPDATE_ZONE', 'zone', id, `Mise à jour zone #${id}`);
     } catch (error) {
         console.error('Erreur mise à jour zone:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -106,6 +113,9 @@ exports.deleteZone = async (req, res) => {
         }
 
         res.json({ success: true, message: 'Zone supprimée' });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'DELETE_ZONE', 'zone', id, `Suppression zone #${id}`);
     } catch (error) {
         console.error('Erreur suppression zone:', error);
         res.status(500).json({ success: false, error: error.message });

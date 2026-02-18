@@ -35,6 +35,66 @@
                         </div>
                     </div>
 
+                    <!-- Statistiques Administratives -->
+                    <div class="row g-4 mb-4">
+                        <!-- Utilisateurs -->
+                        <div class="col-12 col-sm-6 col-xl-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Utilisateurs</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-users">--</h3>
+                                            <small class="text-muted"><i class="bi bi-people"></i> Inscrits</small>
+                                        </div>
+                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                            <i class="bi bi-person-lines-fill fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dispositifs IoT -->
+                        <div class="col-12 col-sm-6 col-xl-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Dispositifs IoT</p>
+                                            <h3 class="mb-0 fw-bold text-dark"><span id="kpi-online-devices">--</span> /
+                                                <span id="kpi-total-devices">--</span>
+                                            </h3>
+                                            <small class="text-success fw-medium"><i class="bi bi-wifi"></i> En
+                                                ligne</small>
+                                        </div>
+                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                                            <i class="bi bi-cpu-fill fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Bateaux -->
+                        <div class="col-12 col-sm-6 col-xl-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Total Bateaux</p>
+                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-total-boats">--</h3>
+                                            <small class="text-muted"><i class="bi bi-boat"></i> Flotte complète</small>
+                                        </div>
+                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                            <i class="bi bi-speedometer2 fs-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- KPI Cards avec Données ThingsBoard -->
                     <div class="row g-4 mb-4">
                         <!-- Bateaux Actifs -->
@@ -202,6 +262,79 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Section Alertes Récentes -->
+                    <div class="row g-4 mt-2">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div
+                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0 fw-bold text-dark">
+                                        <i class="bi bi-bell-fill me-2 text-danger"></i>Alertes Récentes
+                                    </h5>
+                                    <div>
+                                        <% if (locals.userRole==='admin' || locals.userRole==='technicien' ) { %>
+                                            <button id="btn-simulate" class="btn btn-sm btn-outline-danger me-2"
+                                                onclick="simulateAlert()">
+                                                <i class="bi bi-lightning-charge-fill me-1"></i>Simuler
+                                            </button>
+                                            <% } %>
+                                                <a href="/admin/alertes" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-arrow-right me-1"></i>Voir toutes
+                                                </a>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="recent-alerts-container">
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0 small">Chargement des alertes...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historique Récent -->
+                    <div class="row g-4 mt-2 mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div
+                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0 fw-bold text-dark">
+                                        <i class="bi bi-clock-history me-2 text-secondary"></i>Dernières Activités
+                                    </h5>
+                                    <a href="/admin/historique" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-arrow-right me-1"></i>Voir tout
+                                    </a>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th class="border-0 ps-4">Utilisateur</th>
+                                                    <th class="border-0">Action</th>
+                                                    <th class="border-0">Détails</th>
+                                                    <th class="border-0 text-end pe-4">Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recent-history-table">
+                                                <tr>
+                                                    <td colspan="4" class="text-center py-4"><span
+                                                            class="spinner-border spinner-border-sm text-secondary"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
         </div>
 
@@ -224,6 +357,19 @@
                     box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
                 }
             }
+
+            .alert-item-dashboard {
+                transition: background-color 0.2s ease;
+                cursor: pointer;
+            }
+
+            .alert-item-dashboard:hover {
+                background-color: rgba(0, 0, 0, 0.02);
+            }
+
+            .alert-item-dashboard:last-child {
+                border-bottom: none !important;
+            }
         </style>
 
         <!-- Leaflet CSS -->
@@ -236,6 +382,7 @@
         <script>
             let map;
             let waterChart;
+            let zonesChart;
 
             document.addEventListener('DOMContentLoaded', function () {
                 // 1. Initialiser la carte
@@ -248,9 +395,13 @@
                 loadDashboardData();
                 loadThingsBoardData();
                 loadMapData(); // Charger les bateaux sur la carte
+                loadMapData(); // Charger les bateaux sur la carte
+                loadRecentAlerts(); // Charger les alertes récentes
+                loadRecentHistory(); // Charger l'historique récent
 
                 // 3. Rafraîchissement automatique (Temps réel)
                 setInterval(loadThingsBoardData, 10000); // Toutes les 10s pour IoT
+                setInterval(loadRecentAlerts, 30000); // Toutes les 30s pour les alertes
 
                 // 4. Graphiques
                 initCharts();
@@ -261,11 +412,162 @@
                     const response = await fetch('/api/dashboard/stats');
                     const data = await response.json();
 
+                    // KPIs Opérationnels
                     document.getElementById('kpi-boats').textContent = data.activeBoats || 0;
-                    document.getElementById('kpi-alerts').textContent = data.activeAlerts || 0;
+
+                    // KPIs Administratifs (Nouveaux)
+                    if (document.getElementById('kpi-users')) {
+                        document.getElementById('kpi-users').textContent = data.totalUsers || 0;
+                    }
+                    if (document.getElementById('kpi-total-boats')) {
+                        document.getElementById('kpi-total-boats').textContent = data.totalBoats || 0;
+                    }
+                    if (document.getElementById('kpi-online-devices')) {
+                        document.getElementById('kpi-online-devices').textContent = data.onlineDevices || 0;
+                        document.getElementById('kpi-total-devices').textContent = data.totalDevices || 0;
+                    }
+
+                    // Alertes (Depuis les stats globales)
+                    if (data.activeAlerts !== undefined) {
+                        const activeAlertsCount = parseInt(data.activeAlerts);
+                        const kpiAlerts = document.getElementById('kpi-alerts');
+
+                        if (kpiAlerts) {
+                            kpiAlerts.textContent = activeAlertsCount;
+                            const alertStatus = kpiAlerts.nextElementSibling;
+
+                            if (activeAlertsCount > 0) {
+                                alertStatus.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> ${activeAlertsCount} active${activeAlertsCount > 1 ? 's' : ''}`;
+                                alertStatus.className = 'text-danger fw-bold';
+                            } else {
+                                alertStatus.innerHTML = '<i class="bi bi-shield-check"></i> Aucune urgence';
+                                alertStatus.className = 'text-muted';
+                            }
+                        }
+                    }
                 } catch (error) {
                     console.error('Erreur stats:', error);
                 }
+            }
+
+            async function loadRecentAlerts() {
+                try {
+                    const response = await fetch('/api/alerts/active?limit=5', { credentials: 'include' });
+                    const data = await response.json();
+
+                    const container = document.getElementById('recent-alerts-container');
+
+                    if (!data.success || data.alerts.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2 mb-0">Aucune alerte active</p>
+                                <small class="text-muted">Tout fonctionne normalement</small>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const alertsHtml = data.alerts.map(alert => {
+                        const severityClass = {
+                            'critical': 'danger',
+                            'warning': 'warning',
+                            'info': 'info'
+                        }[alert.severity] || 'secondary';
+
+                        const severityIcon = {
+                            'critical': 'bi-exclamation-triangle-fill',
+                            'warning': 'bi-exclamation-circle-fill',
+                            'info': 'bi-info-circle-fill'
+                        }[alert.severity] || 'bi-bell-fill';
+
+                        const date = new Date(alert.created_at);
+                        const timeAgo = getTimeAgo(date);
+
+                        return `
+                            <div class="alert-item-dashboard border-bottom p-3 hover-bg">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        <div class="bg-${severityClass} bg-opacity-10 p-2 rounded-circle text-${severityClass}">
+                                            <i class="bi ${severityIcon}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <h6 class="mb-0 fw-bold">${alert.boat_name || 'Bateau inconnu'}</h6>
+                                            <span class="badge bg-${severityClass}">${alert.severity.toUpperCase()}</span>
+                                        </div>
+                                        <p class="mb-1 small">${alert.message.substring(0, 100)}${alert.message.length > 100 ? '...' : ''}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>${timeAgo}
+                                            ${alert.zone_name ? `<span class="ms-2"><i class="bi bi-geo-alt me-1"></i>${alert.zone_name}</span>` : ''}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = alertsHtml;
+                } catch (error) {
+                    console.error('Erreur chargement alertes:', error);
+                    document.getElementById('recent-alerts-container').innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Erreur de chargement</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function loadRecentHistory() {
+                try {
+                    const response = await fetch('/api/history/activity?limit=15');
+                    const logs = await response.json();
+
+                    const tbody = document.getElementById('recent-history-table');
+                    if (!logs || logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Aucune activité récente</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = logs.map(log => {
+                        const bgColors = {
+                            'LOGIN': 'success', 'LOGOUT': 'secondary',
+                            'CREATE_BOAT': 'primary', 'UPDATE_BOAT': 'info', 'DELETE_BOAT': 'danger',
+                            'CREATE_ZONE': 'primary', 'alert': 'danger'
+                        };
+                        const color = bgColors[log.action] || 'secondary';
+
+                        return `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width:32px;height:32px">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 fw-bold text-dark small">${log.username || 'Système'}</p>
+                                        <p class="mb-0 text-muted x-small" style="font-size:0.75rem">${log.role || ''}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-${color} bg-opacity-10 text-${color} border border-${color}">${log.action}</span></td>
+                            <td class="small text-muted text-truncate" style="max-width: 300px;">${log.details || log.message || '-'}</td>
+                            <td class="text-end pe-4 small text-muted">${getTimeAgo(new Date(log.created_at || log.timestamp))}</td>
+                        </tr>
+                    `}).join('');
+
+                } catch (e) { console.error('Erreur chargement historique', e); }
+            }
+
+            function getTimeAgo(date) {
+                const seconds = Math.floor((new Date() - date) / 1000);
+
+                if (seconds < 60) return 'À l\'instant';
+                if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
+                if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)} h`;
+                return `Il y a ${Math.floor(seconds / 86400)} j`;
             }
 
             async function loadMapData() {
@@ -357,13 +659,13 @@
 
                 // Graphique zones
                 const zonesCtx = document.getElementById('zones-chart').getContext('2d');
-                new Chart(zonesCtx, {
+                zonesChart = new Chart(zonesCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Pêche Autorisée', 'Interdites', 'Protégées'],
+                        labels: ['Chargement...'],
                         datasets: [{
-                            data: [3, 1, 1], // À remplacer par vraies données /api/zones/stats
-                            backgroundColor: ['#0ea5e9', '#ef4444', '#14b8a6'],
+                            data: [1],
+                            backgroundColor: ['#e5e7eb'],
                             borderWidth: 0
                         }]
                     },
@@ -376,6 +678,32 @@
                         cutout: '70%'
                     }
                 });
+
+                loadZonesChartData();
+            }
+
+            async function loadZonesChartData() {
+                try {
+                    const response = await fetch('/api/zones/stats');
+                    const data = await response.json();
+
+                    if (data.success && data.stats) {
+                        const labels = [];
+                        const values = [];
+                        const bgColors = [];
+
+                        data.stats.forEach(stat => {
+                            labels.push(stat.label);
+                            values.push(stat.count);
+                            bgColors.push(stat.color || '#3b82f6');
+                        });
+
+                        zonesChart.data.labels = labels;
+                        zonesChart.data.datasets[0].data = values;
+                        zonesChart.data.datasets[0].backgroundColor = bgColors;
+                        zonesChart.update();
+                    }
+                } catch (e) { console.error('Erreur chargement stats zones', e); }
             }
 
             function refreshDashboard() {
@@ -387,6 +715,42 @@
                     waterChart.update();
                 }
             }
+            // Simuler une alerte (DÉMO)
+            window.simulateAlert = async function () {
+                try {
+                    const btn = document.getElementById('btn-simulate');
+                    if (btn) {
+                        const originalHtml = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>...';
+                    }
+
+                    const res = await fetch('/api/alerts/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        // Recharger la page pour voir l'alerte
+                        window.location.reload();
+                    } else {
+                        alert('Erreur simulation: ' + (data.error || 'Erreur inconnue'));
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i>Simuler';
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Erreur lors de la simulation');
+                    const btn = document.getElementById('btn-simulate');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i>Simuler';
+                    }
+                }
+            };
         </script>
 
         <%- include('../partials/footer') %>

@@ -1,5 +1,6 @@
 const Boat = require('../models/Boat');
 const GpsPosition = require('../models/GpsPosition');
+const ActivityLog = require('../models/ActivityLog');
 
 /**
  * Page de suivi GPS
@@ -7,9 +8,18 @@ const GpsPosition = require('../models/GpsPosition');
 exports.trackingPage = async (req, res) => {
     try {
         res.locals.currentPath = '/admin/gps-tracking';
+
+        // Récupérer la liste des pêcheurs pour le formulaire d'ajout
+        const User = require('../models/User');
+        const users = await User.findAll();
+
+        // Filtrer uniquement les pêcheurs
+        const pecheurs = users.filter(u => u.role === 'pecheur');
+
         res.render('admin/gps-tracking', {
             title: 'Proj_iot - Suivi GPS',
-            user: req.user
+            user: req.user,
+            pecheurs // Passer la liste des pêcheurs à la vue
         });
     } catch (error) {
         console.error('Erreur affichage page GPS:', error);
@@ -95,11 +105,47 @@ exports.createBoat = async (req, res) => {
             });
         }
 
+        // Vérifier que le propriétaire existe et est un pêcheur
+        if (!ownerId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Vous devez sélectionner un propriétaire pour le bateau'
+            });
+        }
+
+        const User = require('../models/User');
+        const owner = await User.findById(ownerId);
+
+        if (!owner) {
+            return res.status(400).json({
+                success: false,
+                error: 'Le pêcheur sélectionné n\'existe pas'
+            });
+        }
+
+        if (owner.role !== 'pecheur') {
+            return res.status(400).json({
+                success: false,
+                error: 'Le propriétaire doit avoir le rôle "pêcheur"'
+            });
+        }
+
         const boat = await Boat.create(name, registrationNumber, ownerId, deviceId);
-        res.json({ success: true, boat });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'CREATE_BOAT', 'boat', boat.id, `Création bateau ${name}`);
+
+        res.json({
+            success: true,
+            boat,
+            message: `Bateau "${name}" créé et assigné à ${owner.username}`
+        });
     } catch (error) {
         console.error('Erreur création bateau:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Erreur lors de la création du bateau'
+        });
     }
 };
 
@@ -118,6 +164,9 @@ exports.updateBoat = async (req, res) => {
         }
 
         res.json({ success: true, message: 'Bateau mis à jour' });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'UPDATE_BOAT', 'boat', id, `Mise à jour bateau #${id}`);
     } catch (error) {
         console.error('Erreur mise à jour bateau:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -137,6 +186,9 @@ exports.deleteBoat = async (req, res) => {
         }
 
         res.json({ success: true, message: 'Bateau supprimé' });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'DELETE_BOAT', 'boat', id, `Suppression bateau #${id}`);
     } catch (error) {
         console.error('Erreur suppression bateau:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -165,6 +217,7 @@ exports.getBoatPositions = async (req, res) => {
 exports.recordPosition = async (req, res) => {
     try {
         const { boatId, latitude, longitude, speed, heading, altitude } = req.body;
+        console.log(`📡 Réception position pour bateau ${boatId}: [${latitude}, ${longitude}]`);
 
         if (!boatId || !latitude || !longitude) {
             return res.status(400).json({
@@ -182,7 +235,44 @@ exports.recordPosition = async (req, res) => {
             altitude
         );
 
-        res.json({ success: true, position });
+        // 🚨 NOUVEAU: Vérifier automatiquement les violations de zones
+        try {
+            const ZoneMonitoringService = require('../services/zoneMonitoringService');
+
+            // Vérifier les violations de zones interdites/protégées
+            const violationAlerts = await ZoneMonitoringService.checkBoatPosition(
+                boatId,
+                latitude,
+                longitude
+            );
+
+            // Vérifier la dérive hors zones autorisées
+            const driftAlert = await ZoneMonitoringService.checkDriftFromAuthorizedZone(
+                boatId,
+                latitude,
+                longitude
+            );
+
+            const alerts = [...violationAlerts];
+            if (driftAlert) alerts.push(driftAlert);
+
+            console.log(`🚨 ${alerts.length} alerte(s) générée(s) pour bateau ${boatId}`);
+
+            // Retourner la position avec les alertes générées
+            res.json({
+                success: true,
+                position,
+                alerts: alerts.length > 0 ? alerts : undefined
+            });
+        } catch (monitoringError) {
+            // Si le monitoring échoue, on retourne quand même la position
+            console.error('Erreur monitoring zones:', monitoringError);
+            res.json({
+                success: true,
+                position,
+                monitoringError: 'Erreur lors de la vérification des zones'
+            });
+        }
     } catch (error) {
         console.error('Erreur enregistrement position:', error);
         res.status(500).json({ success: false, error: error.message });

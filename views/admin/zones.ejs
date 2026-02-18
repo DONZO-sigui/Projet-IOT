@@ -185,6 +185,11 @@
                         coordinates = { center: [center.lat, center.lng], radius };
                     }
 
+                    // Réinitialiser le formulaire pour une nouvelle zone
+                    document.getElementById('zoneForm').reset();
+                    document.getElementById('zoneId').value = '';
+                    document.getElementById('zoneModalTitle').textContent = 'Nouvelle Zone';
+
                     document.getElementById('zoneCoordinates').value = JSON.stringify(coordinates);
                     new bootstrap.Modal(document.getElementById('zoneModal')).show();
                 });
@@ -312,6 +317,22 @@
                 } else if (coords.center) {
                     map.setView(coords.center, 13);
                 }
+            }
+
+            function editZone(zoneId) {
+                const zone = zones.find(z => z.id === zoneId);
+                if (!zone) return;
+
+                document.getElementById('zoneId').value = zone.id;
+                document.getElementById('zoneName').value = zone.name;
+                document.getElementById('zoneType').value = zone.type;
+                document.getElementById('zoneColor').value = zone.color;
+                document.getElementById('zoneDescription').value = zone.description || '';
+                document.getElementById('zoneCoordinates').value = JSON.stringify(zone.coordinates);
+
+                document.getElementById('zoneModalTitle').textContent = 'Modifier Zone';
+
+                new bootstrap.Modal(document.getElementById('zoneModal')).show();
             }
 
             function startDrawing() {

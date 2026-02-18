@@ -81,7 +81,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-bold">Tentatives de connexion max</label>
-                                        <input type="number" class="form-control" value="5" min="3" max="10"
+                                        <input type="number" class="form-control" value="4" min="3" max="10"
                                             id="maxLoginAttempts">
                                         <small class="text-muted">Nombre de tentatives avant blocage temporaire</small>
                                     </div>
@@ -252,9 +252,31 @@
             updateUptime();
             setInterval(updateUptime, 60000);
 
-            function saveSettings() {
-                // TODO: Implémenter la sauvegarde des paramètres
-                alert('Paramètres enregistrés avec succès !\n\nNote: La sauvegarde persistante sera implémentée prochainement.');
+            async function saveSettings() {
+                try {
+                    // Collecter les données (simulation)
+                    const settings = {
+                        appName: document.getElementById('appName').value,
+                        // ... autres champs
+                    };
+
+                    const response = await fetch('/admin/settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(settings)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Paramètres enregistrés avec succès !');
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur sauvegarde:', error);
+                    alert('Erreur lors de la sauvegarde');
+                }
             }
 
             function testConnection() {

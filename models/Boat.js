@@ -215,6 +215,28 @@ class Boat {
             throw err;
         }
     }
+
+    /**
+     * Obtenir les statistiques des bateaux
+     * @returns {Promise<Object>} Statistiques (total, actifs, maintenance)
+     */
+    static async getStats() {
+        const sql = `
+            SELECT 
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE status = 'active') as active,
+                COUNT(*) FILTER (WHERE status = 'maintenance') as maintenance,
+                COUNT(*) FILTER (WHERE status = 'inactive') as inactive
+            FROM boats
+        `;
+
+        try {
+            const result = await pool.query(sql);
+            return result.rows[0];
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
 module.exports = Boat;

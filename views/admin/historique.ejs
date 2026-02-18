@@ -1,0 +1,428 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    <%= locals.userRole==='admin' ? 'Administration' : 'Espace Membre' %>
+                                </a></li>
+                            <li class="breadcrumb-item active">Historique des Données</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold text-primary">
+                                <i class="bi bi-clock-history me-2"></i>Historique des Données
+                            </h1>
+                            <p class="text-muted mb-0">Consultez l'historique des positions GPS et des alertes</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" onclick="exportCSV()">
+                                <i class="bi bi-download me-1"></i>Exporter CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filtres -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Type de
+                                        données</label>
+                                    <select class="form-select" id="filter-type" onchange="loadHistory()">
+                                        <option value="gps">Positions GPS</option>
+                                        <option value="alertes">Alertes</option>
+                                        <option value="activity">Activités Système</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="boat-filter-col">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Bateau</label>
+                                    <select class="form-select" id="filter-boat" onchange="loadHistory()">
+                                        <option value="">Tous les bateaux</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Date début</label>
+                                    <input type="date" class="form-control" id="filter-start">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Date fin</label>
+                                    <input type="date" class="form-control" id="filter-end">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary w-100" onclick="loadHistory()">
+                                        <i class="bi bi-search me-1"></i>Filtrer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats rapides -->
+                    <div class="row g-3 mb-4" id="stats-row">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm text-center py-3">
+                                <div class="h2 fw-bold text-primary mb-0" id="stat-total">--</div>
+                                <small class="text-muted">Total enregistrements</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm text-center py-3">
+                                <div class="h2 fw-bold text-success mb-0" id="stat-today">--</div>
+                                <small class="text-muted">Aujourd'hui</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm text-center py-3">
+                                <div class="h2 fw-bold text-warning mb-0" id="stat-last">--</div>
+                                <small class="text-muted">Dernière mise à jour</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tableau des données -->
+                    <div class="card border-0 shadow-sm">
+                        <div
+                            class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="bi bi-table me-2 text-primary"></i>
+                                <span id="table-title">Positions GPS</span>
+                            </h5>
+                            <span class="badge bg-primary" id="record-count">0 enregistrement(s)</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" id="history-table">
+                                    <thead class="table-light" id="table-head">
+                                        <!-- Colonnes dynamiques -->
+                                    </thead>
+                                    <tbody id="table-body">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <div class="spinner-border text-primary" role="status"></div>
+                                                <p class="text-muted mt-2 mb-0">Chargement...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                            <small class="text-muted" id="pagination-info">--</small>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-prev" onclick="changePage(-1)"
+                                    disabled>
+                                    <i class="bi bi-chevron-left"></i> Précédent
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-next" onclick="changePage(1)"
+                                    disabled>
+                                    Suivant <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+        </div>
+
+        <script>
+            let currentPage = 1;
+            const pageSize = 20;
+            let allData = [];
+            let boats = [];
+
+            // Initialiser les dates (7 derniers jours par défaut)
+            document.addEventListener('DOMContentLoaded', async () => {
+                const today = new Date();
+                const weekAgo = new Date();
+                weekAgo.setDate(today.getDate() - 7);
+
+                document.getElementById('filter-end').value = today.toISOString().split('T')[0];
+                document.getElementById('filter-start').value = weekAgo.toISOString().split('T')[0];
+
+                await loadBoats();
+                await loadHistory();
+            });
+
+            async function loadBoats() {
+                try {
+                    const res = await fetch('/api/boats', { credentials: 'include' });
+                    if (!res.ok) return;
+                    boats = await res.json();
+                    const select = document.getElementById('filter-boat');
+                    boats.forEach(b => {
+                        const opt = document.createElement('option');
+                        opt.value = b.id;
+                        opt.textContent = b.name + (b.registration_number ? ` (${b.registration_number})` : '');
+                        select.appendChild(opt);
+                    });
+                } catch (e) {
+                    console.error('Erreur chargement bateaux:', e);
+                }
+            }
+
+            async function loadHistory() {
+                currentPage = 1;
+                const type = document.getElementById('filter-type').value;
+                const boatId = document.getElementById('filter-boat').value;
+                const start = document.getElementById('filter-start').value;
+                const end = document.getElementById('filter-end').value;
+
+                // Afficher/masquer le filtre bateau selon le type
+                document.getElementById('boat-filter-col').style.display = type === 'gps' ? '' : 'none';
+
+                showLoading();
+
+                try {
+                    let url;
+                    let fetchedData = [];
+
+                    if (type === 'gps') {
+                        url = `/api/history/gps?${boatId ? `boatId=${boatId}&` : ''}start=${start}&end=${end}&limit=500`;
+                        const res = await fetch(url, { credentials: 'include' });
+                        const json = res.ok ? await res.json() : [];
+                        fetchedData = Array.isArray(json) ? json : [];
+                        renderGpsTable();
+                    } else if (type === 'activity') {
+                        url = `/api/history/activity?limit=500`;
+                        const res = await fetch(url, { credentials: 'include' });
+                        const json = res.ok ? await res.json() : [];
+                        fetchedData = Array.isArray(json) ? json : [];
+                        // Filtrer par date côté client
+                        if (start) fetchedData = fetchedData.filter(d => new Date(d.created_at) >= new Date(start));
+                        if (end) fetchedData = fetchedData.filter(d => new Date(d.created_at) <= new Date(end + 'T23:59:59'));
+                        renderActivityTable();
+                    } else { // type === 'alertes'
+                        url = `/api/alerts?limit=500`;
+                        const res = await fetch(url, { credentials: 'include' });
+                        const json = res.ok ? await res.json() : { alerts: [] };
+                        fetchedData = json.alerts || json || [];
+                        // Filtrer par date côté client
+                        if (start) fetchedData = fetchedData.filter(a => new Date(a.created_at) >= new Date(start));
+                        if (end) fetchedData = fetchedData.filter(a => new Date(a.created_at) <= new Date(end + 'T23:59:59'));
+                        renderAlertsTable();
+                    }
+
+                    allData = fetchedData || [];
+                    updateStats(allData, type);
+                    renderPage();
+                } catch (e) {
+                    console.error('Erreur chargement historique:', e);
+                    showError();
+                }
+            }
+
+            function renderGpsTable() {
+                document.getElementById('table-title').textContent = 'Positions GPS';
+                document.getElementById('table-head').innerHTML = `
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Bateau</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Vitesse</th>
+                    <th>Cap</th>
+                    <th>Date & Heure</th>
+                </tr>`;
+            }
+
+            function renderAlertsTable() {
+                document.getElementById('table-title').textContent = 'Alertes';
+                document.getElementById('table-head').innerHTML = `
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Type</th>
+                    <th>Sévérité</th>
+                    <th>Message</th>
+                    <th>Statut</th>
+                    <th>Date & Heure</th>
+                </tr>`;
+            }
+
+            function renderActivityTable() {
+                document.getElementById('table-title').textContent = 'Activités Système';
+                document.getElementById('table-head').innerHTML = `
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Utilisateur</th>
+                    <th>Action</th>
+                    <th>Détails</th>
+                    <th>Adresse IP</th>
+                    <th>Date & Heure</th>
+                </tr>`;
+            }
+
+            function renderPage() {
+                const type = document.getElementById('filter-type').value;
+                const start = (currentPage - 1) * pageSize;
+                const pageData = allData.slice(start, start + pageSize);
+                const tbody = document.getElementById('table-body');
+
+                if (allData.length === 0) {
+                    // Determine colspan based on the current table type
+                    let colspan = 7; // Default for GPS
+                    if (type === 'alertes') colspan = 6;
+                    if (type === 'activity') colspan = 6;
+
+                    tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Aucune donnée trouvée</td></tr>`;
+                    document.getElementById('record-count').textContent = '0 enregistrement(s)';
+                    document.getElementById('pagination-info').textContent = 'Aucun résultat';
+                    document.getElementById('btn-prev').disabled = true;
+                    document.getElementById('btn-next').disabled = true;
+                    return;
+                }
+
+                document.getElementById('record-count').textContent = `${allData.length} enregistrement(s)`;
+
+                if (type === 'gps') {
+                    tbody.innerHTML = pageData.map((row, i) => `
+                    <tr>
+                        <td class="ps-3 text-muted small">${start + i + 1}</td>
+                        <td><span class="fw-bold">${row.boat_name || `Bateau #${row.boat_id}`}</span><br><small class="text-muted">${row.registration_number || ''}</small></td>
+                        <td><code>${parseFloat(row.latitude).toFixed(5)}</code></td>
+                        <td><code>${parseFloat(row.longitude).toFixed(5)}</code></td>
+                        <td>${row.speed ? `<span class="badge bg-info">${parseFloat(row.speed).toFixed(1)} km/h</span>` : '<span class="text-muted">--</span>'}</td>
+                        <td>${row.heading ? `${parseFloat(row.heading).toFixed(0)}°` : '--'}</td>
+                        <td><small>${formatDate(row.timestamp)}</small></td>
+                    </tr>`).join('');
+                } else if (type === 'activity') {
+                    tbody.innerHTML = pageData.map((row, i) => `
+                    <tr>
+                        <td class="ps-3 text-muted small">${start + i + 1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle p-2 me-2"><i class="bi bi-person"></i></div>
+                                <div>
+                                    <div class="fw-bold">${row.username || 'Système'}</div>
+                                    <small class="text-muted">${row.role || 'System'}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-primary bg-opacity-10 text-primary">${row.action}</span></td>
+                        <td>${row.details || '--'}</td>
+                        <td><small class="font-monospace text-muted">${row.ip_address || '-'}</small></td>
+                        <td><small>${formatDate(row.created_at)}</small></td>
+                    </tr>`).join('');
+                } else { // type === 'alertes'
+                    tbody.innerHTML = pageData.map((row, i) => `
+                    <tr>
+                        <td class="ps-3 text-muted small">${start + i + 1}</td>
+                        <td><span class="badge bg-secondary">${row.type || 'N/A'}</span></td>
+                        <td>${severityBadge(row.severity)}</td>
+                        <td>${row.message || '--'}</td>
+                        <td>${row.acknowledged
+                            ? '<span class="badge bg-success">Résolu</span>'
+                            : '<span class="badge bg-danger">Actif</span>'}</td>
+                        <td><small>${formatDate(row.created_at)}</small></td>
+                    </tr>`).join('');
+                }
+
+                const totalPages = Math.ceil(allData.length / pageSize);
+                document.getElementById('pagination-info').textContent = `Page ${currentPage} / ${totalPages} — ${allData.length} résultat(s)`;
+                document.getElementById('btn-prev').disabled = currentPage <= 1;
+                document.getElementById('btn-next').disabled = currentPage >= totalPages;
+            }
+
+            function changePage(dir) {
+                const totalPages = Math.ceil(allData.length / pageSize);
+                currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+                renderPage();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function updateStats(data, type) {
+                const today = new Date().toDateString();
+                const todayCount = data.filter(d => {
+                    const dateField = (type === 'gps') ? d.timestamp : d.created_at;
+                    return dateField && new Date(dateField).toDateString() === today;
+                }).length;
+
+                document.getElementById('stat-total').textContent = data.length;
+                document.getElementById('stat-today').textContent = todayCount;
+
+                if (data.length > 0) {
+                    const lastField = (type === 'gps') ? data[0].timestamp : data[0].created_at;
+                    document.getElementById('stat-last').textContent = lastField ? formatDate(lastField) : '--';
+                } else {
+                    document.getElementById('stat-last').textContent = '--';
+                }
+            }
+
+            function showLoading() {
+                // Default colspan for loading spinner, will be adjusted by renderPage if no data
+                document.getElementById('table-body').innerHTML = `
+                <tr><td colspan="7" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2 mb-0">Chargement...</p>
+                </td></tr>`;
+            }
+
+            function showError() {
+                // Default colspan for error message, will be adjusted by renderPage if no data
+                document.getElementById('table-body').innerHTML = `
+                <tr><td colspan="7" class="text-center py-5 text-danger">
+                    <i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>
+                    Erreur lors du chargement des données
+                </td></tr>`;
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '--';
+                return new Date(dateStr).toLocaleString('fr-FR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+
+            function severityBadge(severity) {
+                const map = { critical: 'danger', warning: 'warning', info: 'info' };
+                const cls = map[severity] || 'secondary';
+                return `<span class="badge bg-${cls}">${severity || 'N/A'}</span>`;
+            }
+
+            function exportCSV() {
+                if (allData.length === 0) return alert('Aucune donnée à exporter.');
+                const type = document.getElementById('filter-type').value;
+                let csv, filename;
+
+                if (type === 'gps') {
+                    csv = 'ID,Bateau,Latitude,Longitude,Vitesse,Cap,Timestamp\n';
+                    csv += allData.map(r =>
+                        `${r.id},"${r.boat_name || r.boat_id}",${r.latitude},${r.longitude},${r.speed || 0},${r.heading || 0},"${r.timestamp}"`
+                    ).join('\n');
+                    filename = 'historique_gps.csv';
+                } else if (type === 'activity') {
+                    csv = 'ID,Utilisateur,Action,Détails,IP,Date\n';
+                    csv += allData.map(r =>
+                        `${r.id},"${r.username || ''}","${r.action}","${(r.details || '').replace(/"/g, "'")}","${r.ip_address || ''}","${r.created_at}"`
+                    ).join('\n');
+                    filename = 'historique_activites.csv';
+                } else { // type === 'alertes'
+                    csv = 'ID,Type,Sévérité,Message,Statut,Date\n';
+                    csv += allData.map(r =>
+                        `${r.id},"${r.type || ''}","${r.severity || ''}","${(r.message || '').replace(/"/g, "'")}","${r.acknowledged ? 'Résolu' : 'Actif'}","${r.created_at}"`
+                    ).join('\n');
+                    filename = 'historique_alertes.csv';
+                }
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            }
+        </script>
+
+        <%- include('../partials/footer') %>
+            ```

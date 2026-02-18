@@ -99,8 +99,34 @@
                                             <input type="text" class="form-control" name="registrationNumber" required>
                                         </div>
                                         <div class="mb-3">
+                                            <label class="form-label">Propriétaire (Pêcheur) <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-select" name="ownerId" required>
+                                                <option value="">-- Sélectionner un pêcheur --</option>
+                                                <% if (pecheurs && pecheurs.length> 0) { %>
+                                                    <% pecheurs.forEach(function(pecheur) { %>
+                                                        <option value="<%= pecheur.id %>">
+                                                            <%= pecheur.username %>
+                                                                <% if (pecheur.email) { %>
+                                                                    (<%= pecheur.email %>)
+                                                                        <% } %>
+                                                        </option>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <option value="" disabled>Aucun pêcheur disponible
+                                                                </option>
+                                                                <% } %>
+                                            </select>
+                                            <small class="form-text text-muted">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Le bateau sera assigné au pêcheur sélectionné
+                                            </small>
+                                        </div>
+                                        <div class="mb-3">
                                             <label class="form-label">ID Dispositif (ESP32)</label>
                                             <input type="text" class="form-control" name="deviceId">
+                                            <small class="form-text text-muted">Optionnel - ID du dispositif IoT
+                                                embarqué</small>
                                         </div>
                                     </div>
                                     <div class="modal-footer">

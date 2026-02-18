@@ -40,7 +40,7 @@ app.use((req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      res.locals.isAdmin = true;
+      res.locals.isAdmin = decoded.role === 'admin';
       res.locals.username = decoded.username;
       res.locals.userRole = decoded.role;
       res.locals.userId = decoded.id;
@@ -73,11 +73,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 const Boat = require('./models/Boat');
 const GpsPosition = require('./models/GpsPosition');
 const Zone = require('./models/Zone');
+const Alert = require('./models/Alert');
 
 User.createTable();
 Boat.createTable();
 GpsPosition.createTable();
 Zone.createTable();
+Alert.createTable();
+const ActivityLog = require('./models/ActivityLog');
+ActivityLog.createTable();
 
 // === 5. Routes d'authentification (register/login/logout) ===
 const authRoutes = require('./routes/authRoutes');
@@ -85,12 +89,65 @@ app.use('/auth', authRoutes);
 
 // === 6. Routes admin protégées ===
 app.use('/admin', require('./routes/admin'));
+app.use('/admin/dispositifs', require('./routes/devices')); // Nouvelle route pour les devices IoT
 
 // === 7. Routes API ===
 app.use('/api/boats', require('./routes/boats'));
 app.use('/api/zones', require('./routes/zones'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/thingsboard', require('./routes/thingsboard'));
+app.use('/api/alerts', require('./routes/alerts'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/test', require('./routes/test')); // Route temporaire de debug
+
+// API Historique GPS
+const authMiddleware = require('./middleware/authMiddleware');
+const pool = require('./config/database');
+app.get('/api/history/gps', authMiddleware.authenticate, async (req, res) => {
+  try {
+    const { boatId, start, end, limit = 200 } = req.query;
+    let conditions = [];
+    let params = [];
+    let idx = 1;
+
+    if (boatId) { conditions.push(`gp.boat_id = $${idx++}`); params.push(boatId); }
+    if (start) { conditions.push(`gp.timestamp >= $${idx++}`); params.push(start); }
+    if (end) { conditions.push(`gp.timestamp <= $${idx++}`); params.push(end + 'T23:59:59'); }
+
+    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+    const sql = `
+      SELECT gp.*, b.name as boat_name, b.registration_number
+      FROM gps_positions gp
+      LEFT JOIN boats b ON gp.boat_id = b.id
+      ${where}
+      ORDER BY gp.timestamp DESC
+      LIMIT $${idx}
+    `;
+    params.push(parseInt(limit));
+    const result = await pool.query(sql, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erreur API history/gps:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API Historique Activités
+app.get('/api/history/activity', authMiddleware.authenticate, authMiddleware.authorize(['admin', 'technicien', 'pecheur']), async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+
+    // Si pêcheur, on ne montre que ses logs
+    const userId = req.user.role === 'pecheur' ? req.user.id : null;
+
+    const logs = await ActivityLog.getRecent(limit, userId);
+    res.json(logs);
+  } catch (err) {
+    console.error('Erreur API history/activity:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // === 8. Routes publiques du site ===
 app.use('/', require('./routes/index'));
@@ -115,4 +172,16 @@ app.listen(PORT, () => {
   console.log(`🌐 Accède au site : http://localhost:${PORT}`);
   console.log(`📝 Inscription : http://localhost:${PORT}/auth/register`);
   console.log(`🔐 Connexion : http://localhost:${PORT}/auth/login`);
+
+  // Démarrer la simulation IoT en arrière-plan
+  const virtualDeviceService = require('./services/virtualDeviceService');
+  console.log("🤖 Démarrage de la simulation des capteurs IoT...");
+  setInterval(async () => {
+    try {
+      await virtualDeviceService.generateAllTelemetry();
+      // console.log("📡 Télémétrie générée et envoyée."); // Décommenter pour debug
+    } catch (err) {
+      console.error("Erreur cycle simulation:", err);
+    }
+  }, 10000); // Toutes les 10 secondes
 });

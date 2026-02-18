@@ -8,8 +8,8 @@ exports.authenticate = (req, res, next) => {
   const token = tokenFromCookie || tokenFromHeader;
 
   if (!token) {
-    console.log('No token, redirecting to login');
-    return res.redirect('/auth/login'); // utiliser /auth/login si vos routes d'auth sont montées sur /auth
+    console.log('No token, redirecting to home');
+    return res.redirect('/');
   }
 
   try {
@@ -20,7 +20,7 @@ exports.authenticate = (req, res, next) => {
   } catch (err) {
     console.log('Token verify failed:', err.message);
     res.clearCookie('authToken');
-    return res.redirect('/auth/login');
+    return res.redirect('/');
   }
 };
 

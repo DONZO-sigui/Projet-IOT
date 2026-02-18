@@ -1,0 +1,669 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Dispositifs IoT</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold text-primary">Gestion des Dispositifs IoT</h1>
+                            <p class="text-muted mb-0">Surveillance et configuration des capteurs</p>
+                        </div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
+                            <i class="bi bi-plus-lg me-2"></i>Ajouter un Device
+                        </button>
+                    </div>
+
+                    <!-- Statistiques Rapides -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12 col-md-3">
+                            <div class="card border-0 shadow-sm border-start border-4 border-success">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="text-muted mb-1 small text-uppercase">En Ligne</p>
+                                            <h3 class="mb-0 fw-bold">
+                                                <%= stats ? stats.online : 0 %>
+                                            </h3>
+                                        </div>
+                                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-wifi fs-4 text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card border-0 shadow-sm border-start border-4 border-danger">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="text-muted mb-1 small text-uppercase">Hors Ligne</p>
+                                            <h3 class="mb-0 fw-bold">
+                                                <%= stats ? stats.offline : 0 %>
+                                            </h3>
+                                        </div>
+                                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-wifi-off fs-4 text-danger"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card border-0 shadow-sm border-start border-4 border-warning">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="text-muted mb-1 small text-uppercase">Alarmes</p>
+                                            <h3 class="mb-0 fw-bold">0</h3>
+                                        </div>
+                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-bell-fill fs-4 text-warning"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card border-0 shadow-sm border-start border-4 border-info">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="text-muted mb-1 small text-uppercase">Batterie Moy.</p>
+                                            <h3 class="mb-0 fw-bold">
+                                                <%= stats && stats.avg_battery ? Math.round(stats.avg_battery) : 0 %>%
+                                            </h3>
+                                        </div>
+                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                                            <i class="bi bi-battery-charging fs-4 text-info"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des Devices -->
+                    <div class="row g-4">
+                        <% if (devices && devices.length> 0) { %>
+                            <% devices.forEach(function(device) { %>
+                                <div class="col-12 col-lg-6 col-xl-4">
+                                    <div class="card border-0 shadow-sm h-100 device-card">
+                                        <div
+                                            class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span
+                                                    class="status-indicator <%= device.status === 'online' ? 'online' : 'offline' %>"></span>
+                                                <h5 class="mb-0 text-truncate" style="max-width: 200px;"
+                                                    title="<%= device.device_name %>">
+                                                    <%= device.device_name %>
+                                                </h5>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li><a class="dropdown-item" href="#"
+                                                            onclick="showDeviceDetails('<%= device.id %>')"><i
+                                                                class="bi bi-eye me-2"></i>Détails</a></li>
+                                                    <li><a class="dropdown-item" href="#"
+                                                            onclick="rebootDevice('<%= device.id %>')"><i
+                                                                class="bi bi-arrow-clockwise me-2"></i>Redémarrer</a>
+                                                    </li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li><a class="dropdown-item text-danger" href="#"><i
+                                                                class="bi bi-trash me-2"></i>Supprimer</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span class="badge bg-light text-dark border">
+                                                    <%= device.device_type %>
+                                                </span>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-hdd-network me-1"></i>
+                                                    <%= device.thingsboard_device_id || 'N/A' %>
+                                                </small>
+                                            </div>
+
+                                            <!-- Télémétrie en temps réel -->
+                                            <div class="telemetry-grid row g-2 mb-3">
+                                                <% if (device.telemetry) { %>
+                                                    <% if (device.telemetry.ph !==undefined) { %>
+                                                        <div class="col-6">
+                                                            <div class="p-2 bg-light rounded text-center">
+                                                                <small class="d-block text-muted mb-1">pH</small>
+                                                                <span class="fw-bold fs-5 text-primary">
+                                                                    <%= device.telemetry.ph %>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (device.telemetry.temperature !==undefined) { %>
+                                                                <div class="col-6">
+                                                                    <div class="p-2 bg-light rounded text-center">
+                                                                        <small
+                                                                            class="d-block text-muted mb-1">Temp</small>
+                                                                        <span class="fw-bold fs-5 text-danger">
+                                                                            <%= device.telemetry.temperature %>°C
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <% } %>
+                                                                    <% if (device.telemetry.turbidity !==undefined) { %>
+                                                                        <div class="col-6">
+                                                                            <div
+                                                                                class="p-2 bg-light rounded text-center">
+                                                                                <small
+                                                                                    class="d-block text-muted mb-1">Turbidité</small>
+                                                                                <span
+                                                                                    class="fw-bold fs-5 text-secondary">
+                                                                                    <%= device.telemetry.turbidity %>
+                                                                                        NTU
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <% } %>
+                                                                            <% } else { %>
+                                                                                <div
+                                                                                    class="col-12 text-center text-muted py-3">
+                                                                                    <i
+                                                                                        class="bi bi-broadcast-pin me-2"></i>En
+                                                                                    attente de données...
+                                                                                </div>
+                                                                                <% } %>
+                                            </div>
+
+                                            <div
+                                                class="d-flex justify-content-between align-items-center text-muted small">
+                                                <span><i class="bi bi-battery-half me-1"></i>
+                                                    <%= device.telemetry ? device.telemetry.battery : 0 %>%
+                                                </span>
+                                                <span><i class="bi bi-reception-4 me-1"></i>
+                                                    <%= device.telemetry ? device.telemetry.signal : 0 %> dBm
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="col-12">
+                                            <div class="text-center py-5 text-muted">
+                                                <i class="bi bi-router fs-1 d-block mb-3"></i>
+                                                <h4>Aucun dispositif configuré</h4>
+                                                <p>Commencez par ajouter un nouveau device IoT.</p>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                    </div>
+
+                    <!-- Modal Détails Device -->
+                    <div class="modal fade" id="deviceDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <span id="modalDeviceName">Détails du Dispositif</span>
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="deviceDetailsContent">
+                                        <div class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                            <p class="mt-3 text-muted">Chargement des données...</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contenu chargé dynamiquement -->
+                                    <div id="deviceDetailsLoaded" style="display: none;">
+                                        <div class="row mb-4">
+                                            <!-- Informations générales -->
+                                            <div class="col-md-6">
+                                                <div class="card border-0 bg-light">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title mb-3">
+                                                            <i class="bi bi-info-circle me-2"></i>Informations
+                                                        </h6>
+                                                        <table class="table table-sm table-borderless mb-0">
+                                                            <tbody id="deviceInfoTable">
+                                                                <!-- Rempli dynamiquement -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Télémétrie actuelle -->
+                                            <div class="col-md-6">
+                                                <div class="card border-0 bg-light">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title mb-3">
+                                                            <i class="bi bi-activity me-2"></i>Télémétrie Actuelle
+                                                        </h6>
+                                                        <div id="currentTelemetry" class="row g-2">
+                                                            <!-- Rempli dynamiquement -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Graphique d'historique -->
+                                        <div class="card border-0 bg-light mb-3">
+                                            <div class="card-body">
+                                                <h6 class="card-title mb-3">
+                                                    <i class="bi bi-graph-up me-2"></i>Historique des Mesures
+                                                </h6>
+                                                <canvas id="deviceHistoryChart" height="80"></canvas>
+                                            </div>
+                                        </div>
+
+                                        <!-- Alarmes actives -->
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title mb-3">
+                                                    <i class="bi bi-exclamation-triangle me-2"></i>Alarmes Actives
+                                                </h6>
+                                                <div id="deviceAlarms">
+                                                    <!-- Rempli dynamiquement -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Ajout Device -->
+                    <div class="modal fade" id="addDeviceModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Ajouter un nouveau Dispositif</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addDeviceForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom du device</label>
+                                            <input type="text" class="form-control" name="device_name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Type</label>
+                                            <select class="form-select" name="device_type" required>
+                                                <option value="sensor_ph">Capteur pH</option>
+                                                <option value="sensor_temp">Capteur Température</option>
+                                                <option value="sensor_turbidity">Capteur Turbidité</option>
+                                                <option value="gps">GPS Tracker</option>
+                                                <option value="gateway">Gateway IoT</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">ID ThingsBoard (Optionnel)</label>
+                                            <input type="text" class="form-control" name="thingsboard_device_id">
+                                            <small class="form-text text-muted">Laissez vide pour génération
+                                                automatique</small>
+                                        </div>
+                                        <!-- Sélection du bateau -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Bateau <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="boat_id" required>
+                                                <option value="">-- Sélectionner un bateau --</option>
+                                                <% if (boats && boats.length> 0) { %>
+                                                    <% boats.forEach(function(boat) { %>
+                                                        <option value="<%= boat.id %>">
+                                                            <%= boat.name %>
+                                                                <% if (boat.owner_name) { %>
+                                                                    (Propriétaire: <%= boat.owner_name %>)
+                                                                        <% } else { %>
+                                                                            (Non assigné)
+                                                                            <% } %>
+                                                                                - <%= boat.registration_number || 'N/A'
+                                                                                    %>
+                                                        </option>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <option value="" disabled>Aucun bateau disponible
+                                                                </option>
+                                                                <% } %>
+                                            </select>
+                                            <small class="form-text text-muted">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Le device sera associé au bateau sélectionné
+                                            </small>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Annuler</button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick="submitAddDevice()">Enregistrer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+        </div>
+
+        <script>
+            // Auto-refresh des données toutes les 5 secondes
+            setInterval(refreshTelemetry, 5000);
+
+            async function refreshTelemetry() {
+                try {
+                    // Pour le moment on recharge juste la page pour voir les nouvelles valeurs
+                    // Dans une version plus avancée, on récupère le json et on update le DOM
+                    // location.reload(); 
+                } catch (error) {
+                    console.error('Erreur refresh:', error);
+                }
+            }
+
+            let deviceChart = null; // Variable globale pour le graphique
+
+            async function showDeviceDetails(id) {
+                // Afficher le modal
+                const modal = new bootstrap.Modal(document.getElementById('deviceDetailsModal'));
+                modal.show();
+
+                // Afficher le spinner
+                document.getElementById('deviceDetailsContent').style.display = 'block';
+                document.getElementById('deviceDetailsLoaded').style.display = 'none';
+
+                try {
+                    // Charger les données du device
+                    const response = await fetch(`/admin/dispositifs/${id}`);
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Erreur de chargement');
+                    }
+
+                    const { device, telemetry, history, alarms } = data;
+
+                    // Mettre à jour le titre
+                    document.getElementById('modalDeviceName').textContent = device.device_name;
+
+                    // Remplir les informations générales
+                    const infoTable = document.getElementById('deviceInfoTable');
+                    infoTable.innerHTML = `
+                        <tr>
+                            <td class="text-muted">Type:</td>
+                            <td class="fw-bold">${formatDeviceType(device.device_type)}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Statut:</td>
+                            <td><span class="badge bg-${device.status === 'online' ? 'success' : 'danger'}">${device.status}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Bateau:</td>
+                            <td>${device.boat_name || 'Non assigné'}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">ID ThingsBoard:</td>
+                            <td><code class="small">${device.thingsboard_device_id || 'N/A'}</code></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Créé le:</td>
+                            <td>${new Date(device.created_at).toLocaleString('fr-FR')}</td>
+                        </tr>
+                    `;
+
+                    // Remplir la télémétrie actuelle
+                    const telemetryDiv = document.getElementById('currentTelemetry');
+                    let telemetryHTML = '';
+
+                    if (telemetry.ph !== undefined) {
+                        telemetryHTML += `
+                            <div class="col-6">
+                                <div class="p-3 bg-white rounded text-center">
+                                    <small class="text-muted d-block mb-1">pH</small>
+                                    <h4 class="mb-0 text-primary">${telemetry.ph}</h4>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    if (telemetry.temperature !== undefined) {
+                        telemetryHTML += `
+                            <div class="col-6">
+                                <div class="p-3 bg-white rounded text-center">
+                                    <small class="text-muted d-block mb-1">Température</small>
+                                    <h4 class="mb-0 text-danger">${telemetry.temperature}°C</h4>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    if (telemetry.turbidity !== undefined) {
+                        telemetryHTML += `
+                            <div class="col-6">
+                                <div class="p-3 bg-white rounded text-center">
+                                    <small class="text-muted d-block mb-1">Turbidité</small>
+                                    <h4 class="mb-0 text-secondary">${telemetry.turbidity} NTU</h4>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    telemetryHTML += `
+                        <div class="col-6">
+                            <div class="p-3 bg-white rounded text-center">
+                                <small class="text-muted d-block mb-1">Batterie</small>
+                                <h4 class="mb-0 text-info">${telemetry.battery}%</h4>
+                            </div>
+                        </div>
+                    `;
+
+                    telemetryDiv.innerHTML = telemetryHTML;
+
+                    // Créer le graphique d'historique
+                    createHistoryChart(history, device.device_type);
+
+                    // Afficher les alarmes
+                    const alarmsDiv = document.getElementById('deviceAlarms');
+                    if (alarms && alarms.length > 0) {
+                        alarmsDiv.innerHTML = alarms.map(alarm => `
+                            <div class="alert alert-${alarm.severity === 'critical' ? 'danger' : 'warning'} mb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>${alarm.alarm_type}</strong>
+                                        <p class="mb-0 small">${alarm.message}</p>
+                                    </div>
+                                    <small class="text-muted">${new Date(alarm.created_at).toLocaleTimeString('fr-FR')}</small>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        alarmsDiv.innerHTML = '<p class="text-muted text-center mb-0">Aucune alarme active</p>';
+                    }
+
+                    // Masquer le spinner et afficher le contenu
+                    document.getElementById('deviceDetailsContent').style.display = 'none';
+                    document.getElementById('deviceDetailsLoaded').style.display = 'block';
+
+                } catch (error) {
+                    console.error('Erreur chargement détails:', error);
+                    document.getElementById('deviceDetailsContent').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Erreur lors du chargement des détails: ${error.message}
+                        </div>
+                    `;
+                }
+            }
+
+            function createHistoryChart(history, deviceType) {
+                const ctx = document.getElementById('deviceHistoryChart');
+
+                // Détruire le graphique existant s'il y en a un
+                if (deviceChart) {
+                    deviceChart.destroy();
+                }
+
+                // Préparer les données
+                const labels = history.map(h => new Date(h.timestamp).toLocaleTimeString('fr-FR'));
+                const values = history.map(h => h.metric_value);
+
+                // Déterminer la couleur et le label selon le type
+                let color, label;
+                switch (deviceType) {
+                    case 'sensor_ph':
+                        color = 'rgb(54, 162, 235)';
+                        label = 'pH';
+                        break;
+                    case 'sensor_temp':
+                        color = 'rgb(255, 99, 132)';
+                        label = 'Température (°C)';
+                        break;
+                    case 'sensor_turbidity':
+                        color = 'rgb(75, 192, 192)';
+                        label = 'Turbidité (NTU)';
+                        break;
+                    default:
+                        color = 'rgb(153, 102, 255)';
+                        label = 'Valeur';
+                }
+
+                deviceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.reverse(),
+                        datasets: [{
+                            label: label,
+                            data: values.reverse(),
+                            borderColor: color,
+                            backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            function formatDeviceType(type) {
+                const types = {
+                    'sensor_ph': 'Capteur pH',
+                    'sensor_temp': 'Capteur Température',
+                    'sensor_turbidity': 'Capteur Turbidité',
+                    'gps': 'GPS Tracker',
+                    'gateway': 'Gateway IoT',
+                    'camera': 'Caméra'
+                };
+                return types[type] || type;
+            }
+
+            async function rebootDevice(id) {
+                if (confirm('Redémarrer ce device ?')) {
+                    try {
+                        const response = await fetch(`/admin/dispositifs/${id}/action`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'reboot' })
+                        });
+                        const data = await response.json();
+                        alert('Commande de redémarrage envoyée');
+                    } catch (error) {
+                        alert('Erreur lors de l\'envoi de la commande');
+                    }
+                }
+            }
+
+            async function submitAddDevice() {
+                const form = document.getElementById('addDeviceForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/admin/dispositifs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Device créé avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la création');
+                }
+            }
+        </script>
+
+        <style>
+            .status-indicator {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .status-indicator.online {
+                background-color: #198754;
+                box-shadow: 0 0 5px #198754;
+            }
+
+            .status-indicator.offline {
+                background-color: #dc3545;
+            }
+
+            .device-card {
+                transition: transform 0.2s;
+            }
+
+            .device-card:hover {
+                transform: translateY(-5px);
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

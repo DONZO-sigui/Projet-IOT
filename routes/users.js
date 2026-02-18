@@ -11,6 +11,7 @@ router.use(authMiddleware.authorize(['admin']));
 
 // Routes API pour les utilisateurs
 router.get('/', userController.getAllUsers);
+router.post('/', userController.createUser); // Admin create user
 router.get('/stats', userController.getUserStats);
 router.get('/:id', userController.getUserDetails);
 router.put('/:id/role', userController.updateUserRole);

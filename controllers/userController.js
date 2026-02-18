@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const ActivityLog = require('../models/ActivityLog');
 
 /**
  * Page de gestion des utilisateurs
@@ -26,6 +27,36 @@ exports.getAllUsers = async (req, res) => {
     } catch (error) {
         console.error('Erreur récupération utilisateurs:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Créer un utilisateur (API Admin)
+ */
+exports.createUser = async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+
+        if (!username || !email || !password || !role) {
+            return res.status(400).json({ success: false, error: 'Tous les champs sont requis' });
+        }
+
+        const user = await User.create(username, email, password, role);
+
+        // Log activity
+        if (req.user) {
+            await ActivityLog.log(req.user.id, 'CREATE_USER', 'user', user.id, `Création utilisateur ${username} (Admin)`);
+        }
+
+        res.json({ success: true, user, message: 'Utilisateur créé avec succès' });
+
+    } catch (error) {
+        // Gestion des erreurs de duplicata (code 23505 souvent pour postgres)
+        if (error.code === '23505') {
+            return res.status(400).json({ success: false, error: 'Cet email ou nom d\'utilisateur est déjà utilisé' });
+        }
+        console.error('Erreur création utilisateur:', error);
+        res.status(500).json({ success: false, error: error.message || 'Erreur lors de la création' });
     }
 };
 
