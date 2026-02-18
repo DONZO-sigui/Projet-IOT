@@ -132,6 +132,20 @@ exports.createBoat = async (req, res) => {
 
         const boat = await Boat.create(name, registrationNumber, ownerId, deviceId);
 
+        // NOUVEAU: Enregistrer la position initiale si fournie
+        const { latitude, longitude } = req.body;
+        if (latitude && longitude) {
+            await GpsPosition.create(
+                boat.id,
+                parseFloat(latitude),
+                parseFloat(longitude),
+                0, // speed
+                0, // heading
+                0  // altitude
+            );
+            console.log(`📍 Position initiale enregistrée pour le bateau ${boat.id}: [${latitude}, ${longitude}]`);
+        }
+
         // Log activity
         await ActivityLog.log(req.user.id, 'CREATE_BOAT', 'boat', boat.id, `Création bateau ${name}`);
 

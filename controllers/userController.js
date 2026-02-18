@@ -192,4 +192,56 @@ exports.getUserStats = async (req, res) => {
     }
 };
 
+/**
+ * Page de profil utilisateur (pour tous les rôles)
+ */
+exports.profilePage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        res.locals.currentPath = '/admin/profil';
+        res.render('admin/profil', {
+            title: 'Proj_iot - Mon Profil',
+            user: user
+        });
+    } catch (error) {
+        console.error('Erreur affichage page profil:', error);
+        res.status(500).send('Erreur serveur');
+    }
+};
+
+/**
+ * Mettre à jour le profil (API)
+ */
+exports.updateUserProfile = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const userId = req.user.id;
+
+        if (!username || !email) {
+            return res.status(400).json({ success: false, error: 'Nom d\'utilisateur et email requis' });
+        }
+
+        // Mettre à jour les infos de base
+        const updatedUser = await User.updateProfile(userId, username, email);
+
+        // Mettre à jour le mot de passe si fourni
+        if (password && password.trim() !== '') {
+            await User.updatePassword(userId, password);
+        }
+
+        // Log activity
+        await ActivityLog.log(userId, 'UPDATE_PROFILE', 'user', userId, `Mise à jour du profil par ${username}`);
+
+        res.json({
+            success: true,
+            message: 'Profil mis à jour avec succès',
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error('Erreur mise à jour profil:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = exports;

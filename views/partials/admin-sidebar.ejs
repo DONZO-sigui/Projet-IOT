@@ -24,14 +24,20 @@
             </div>
             <a href="/admin/dashboard"
                 class="sidebar-menu-item <%= currentPath === '/admin/dashboard' ? 'active' : '' %>"
-                title="Vue d'ensemble du système">
+                title="Mon tableau de bord personnel">
                 <i class="bi bi-grid-fill"></i>
-                <span>Vue d'ensemble</span>
+                <span>
+                    <%= locals.userRole==='pecheur' ? 'Mon Espace' : "Vue d'ensemble" %>
+                </span>
+            </a>
+            <a href="/admin/profil" class="sidebar-menu-item <%= currentPath === '/admin/profil' ? 'active' : '' %>"
+                title="Gérer mon profil">
+                <i class="bi bi-person-circle"></i>
+                <span>Mon Profil</span>
             </a>
 
-            <% if (['admin', 'pecheur' ].includes(locals.userRole)) { %>
-
-                <!-- Surveillance en temps réel (Admin/Technicien) -->
+            <% if (['admin', 'technicien' , 'observateur' ].includes(locals.userRole)) { %>
+                <!-- Surveillance en temps réel (Admin/Technicien/Observateur) -->
                 <div class="sidebar-section-title">
                     <i class="bi bi-broadcast me-1"></i>
                     SURVEILLANCE EN TEMPS RÉEL
@@ -93,9 +99,8 @@
                                 <!-- Ancienne place, section supprimée -->
                                 <% } %>
 
-                                    <!-- Administration -->
-                                    <% if (['admin', 'pecheur' ].includes(locals.userRole)) { %>
-
+                                    <!-- Administration (Admin Only) -->
+                                    <% if (locals.userRole==='admin' ) { %>
                                         <div class="sidebar-section-title">
                                             <i class="bi bi-shield-fill-check me-1"></i>
                                             ADMINISTRATION
@@ -115,16 +120,18 @@
                                         <% } %>
 
                                             <!-- Rapports & Historique -->
-                                            <div class="sidebar-section-title">
-                                                <i class="bi bi-file-earmark-bar-graph me-1"></i>
-                                                RAPPORTS & HISTORIQUE
-                                            </div>
-                                            <a href="/admin/historique"
-                                                class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>"
-                                                title="Historique des données">
-                                                <i class="bi bi-clock-history"></i>
-                                                <span>Historique des Données</span>
-                                            </a>
+                                            <% if (['admin', 'technicien' ].includes(locals.userRole)) { %>
+                                                <div class="sidebar-section-title">
+                                                    <i class="bi bi-file-earmark-bar-graph me-1"></i>
+                                                    RAPPORTS & HISTORIQUE
+                                                </div>
+                                                <a href="/admin/historique"
+                                                    class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>"
+                                                    title="Historique des données">
+                                                    <i class="bi bi-clock-history"></i>
+                                                    <span>Historique des Données</span>
+                                                </a>
+                                                <% } %>
         </nav>
     </aside>
 

@@ -1,0 +1,162 @@
+<%- include('../partials/header') %>
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <%- include('../partials/navbar') %>
+
+        <div class="admin-layout">
+            <%- include('../partials/admin-sidebar') %>
+
+                <main class="admin-content">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
+                                    Admin</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Mon Profil</li>
+                        </ol>
+                    </nav>
+
+                    <!-- Page Header -->
+                    <div class="mb-4">
+                        <h1 class="h3 mb-1">Mon Profil</h1>
+                        <p class="text-muted">Gérez vos informations personnelles et votre sécurité</p>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-md-8 col-lg-6">
+                            <!-- Profil Card -->
+                            <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                                <div class="card-header bg-primary text-white py-3">
+                                    <h5 class="mb-0"><i class="bi bi-person-gear me-2"></i>Informations du Compte</h5>
+                                </div>
+                                <div class="card-body p-4">
+                                    <form id="profileForm">
+                                        <!-- Utilisateur -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom d'utilisateur</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-person"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="username"
+                                                    value="<%= user.username %>" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Email -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Adresse Email</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-envelope"></i>
+                                                </span>
+                                                <input type="email" class="form-control border-start-0" name="email"
+                                                    value="<%= user.email %>" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Rôle (Lecture seule) -->
+                                        <div class="mb-4">
+                                            <label class="form-label">Rôle</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-shield-lock"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0 bg-light"
+                                                    value="<%= user.role.toUpperCase() %>" readonly disabled>
+                                            </div>
+                                            <small class="text-muted">Votre rôle est défini par
+                                                l'administrateur.</small>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <!-- Sécurité -->
+                                        <h6 class="mb-3 fw-bold text-primary">Modifier le Mot de Passe</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nouveau mot de passe</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-key"></i>
+                                                </span>
+                                                <input type="password" class="form-control border-start-0"
+                                                    name="password" placeholder="Laissez vide pour ne pas changer">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label">Confirmer le mot de passe</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-check-all"></i>
+                                                </span>
+                                                <input type="password" class="form-control border-start-0"
+                                                    id="confirmPassword"
+                                                    placeholder="Confirmez le nouveau mot de passe">
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary btn-lg">
+                                                <i class="bi bi-save me-2"></i>Enregistrer les modifications
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Info Card -->
+                            <div class="card border-0 shadow-sm bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+                                        <div class="small">
+                                            Compte créé le : <strong>
+                                                <%= new Date(user.created_at).toLocaleDateString() %>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+        </div>
+
+        <script>
+            document.getElementById('profileForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Validation mot de passe
+                if (data.password && data.password !== confirmPassword) {
+                    alert('Les mots de passe ne correspondent pas');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/admin/profil', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Profil mis à jour avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la mise à jour du profil');
+                }
+            });
+        </script>
+
+        <%- include('../partials/footer') %>

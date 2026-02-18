@@ -217,6 +217,22 @@ class Boat {
     }
 
     /**
+     * Compter le nombre de bateaux actifs pour un propriétaire spécifique
+     * @param {number} ownerId - ID du propriétaire
+     * @returns {Promise<number>} Nombre de bateaux actifs
+     */
+    static async countActiveByOwner(ownerId) {
+        const sql = `SELECT COUNT(*) as count FROM boats WHERE owner_id = $1 AND status = 'active'`;
+
+        try {
+            const result = await pool.query(sql, [ownerId]);
+            return parseInt(result.rows[0].count);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
      * Obtenir les statistiques des bateaux
      * @returns {Promise<Object>} Statistiques (total, actifs, maintenance)
      */
@@ -232,6 +248,30 @@ class Boat {
 
         try {
             const result = await pool.query(sql);
+            return result.rows[0];
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Obtenir les statistiques des bateaux pour un propriétaire spécifique
+     * @param {number} ownerId - ID du propriétaire
+     * @returns {Promise<Object>} Statistiques
+     */
+    static async getStatsByOwner(ownerId) {
+        const sql = `
+            SELECT 
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE status = 'active') as active,
+                COUNT(*) FILTER (WHERE status = 'maintenance') as maintenance,
+                COUNT(*) FILTER (WHERE status = 'inactive') as inactive
+            FROM boats
+            WHERE owner_id = $1
+        `;
+
+        try {
+            const result = await pool.query(sql, [ownerId]);
             return result.rows[0];
         } catch (err) {
             throw err;

@@ -35,306 +35,326 @@
                         </div>
                     </div>
 
-                    <!-- Statistiques Administratives -->
-                    <div class="row g-4 mb-4">
-                        <!-- Utilisateurs -->
-                        <div class="col-12 col-sm-6 col-xl-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Utilisateurs</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-users">--</h3>
-                                            <small class="text-muted"><i class="bi bi-people"></i> Inscrits</small>
-                                        </div>
-                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                            <i class="bi bi-person-lines-fill fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Dispositifs IoT -->
-                        <div class="col-12 col-sm-6 col-xl-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Dispositifs IoT</p>
-                                            <h3 class="mb-0 fw-bold text-dark"><span id="kpi-online-devices">--</span> /
-                                                <span id="kpi-total-devices">--</span>
-                                            </h3>
-                                            <small class="text-success fw-medium"><i class="bi bi-wifi"></i> En
-                                                ligne</small>
-                                        </div>
-                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
-                                            <i class="bi bi-cpu-fill fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Total Bateaux -->
-                        <div class="col-12 col-sm-6 col-xl-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Total Bateaux</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-total-boats">--</h3>
-                                            <small class="text-muted"><i class="bi bi-boat"></i> Flotte complète</small>
-                                        </div>
-                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
-                                            <i class="bi bi-speedometer2 fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KPI Cards avec Données ThingsBoard -->
-                    <div class="row g-4 mb-4">
-                        <!-- Bateaux Actifs -->
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Bateaux Actifs</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-boats">0</h3>
-                                            <small class="text-success fw-medium"><i class="bi bi-broadcast"></i> En
-                                                ligne</small>
-                                        </div>
-                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                            <i class="bi bi-geo-alt-fill fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Qualité Eau (pH) - Cloud -->
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">pH Moyen (Cloud)</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-ph">--</h3>
-                                            <small id="kpi-ph-status" class="text-muted"><i class="bi bi-activity"></i>
-                                                En attente...</small>
-                                        </div>
-                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
-                                            <i class="bi bi-droplet-half fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Température Eau - Cloud -->
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Température</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-temp">--°C</h3>
-                                            <small class="text-success fw-medium"><i class="bi bi-thermometer-half"></i>
-                                                Optimale</small>
-                                        </div>
-                                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
-                                            <i class="bi bi-water fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Alertes Critiques -->
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1 small text-uppercase fw-bold">Alertes Actives</p>
-                                            <h3 class="mb-0 fw-bold text-dark" id="kpi-alerts">0</h3>
-                                            <small class="text-muted"><i class="bi bi-shield-check"></i> Aucune
-                                                urgence</small>
-                                        </div>
-                                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
-                                            <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Main Content Row -->
-                    <div class="row g-4 mb-4">
-                        <!-- Carte des Bateaux -->
-                        <div class="col-12 col-lg-8">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3">
-                                    <h5 class="mb-0 fw-bold text-dark"><i
-                                            class="bi bi-map me-2 text-primary"></i>Positions des Bateaux</h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div id="dashboard-map" style="height: 400px; width: 100%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Données Télémétrie Détail -->
-                        <div class="col-12 col-lg-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div
-                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0 fw-bold text-dark"><i
-                                            class="bi bi-cpu me-2 text-primary"></i>Capteurs (Temps Réel)</h5>
-                                    <span class="badge bg-success bg-opacity-10 text-success pulse">LIVE</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-4">
-                                        <label class="small text-muted mb-1">Turbidité (Eau)</label>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="fw-bold fs-5" id="telemetry-turbidity">-- NTU</span>
-                                            <span class="badge bg-info">Normal</span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-info" role="progressbar" style="width: 25%">
+                    <!-- Statistiques Administratives (Hide for Pecheur) -->
+                    <% if (locals.userRole !=='pecheur' ) { %>
+                        <div class="row g-4 mb-4">
+                            <!-- Utilisateurs -->
+                            <div class="col-12 col-sm-6 col-xl-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <p class="text-muted mb-1 small text-uppercase fw-bold">Utilisateurs</p>
+                                                <h3 class="mb-0 fw-bold text-dark" id="kpi-users">--</h3>
+                                                <small class="text-muted"><i class="bi bi-people"></i> Inscrits</small>
+                                            </div>
+                                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                                <i class="bi bi-person-lines-fill fs-3"></i>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div class="mb-4">
-                                        <label class="small text-muted mb-1">Niveau Batterie (Solaire)</label>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="fw-bold fs-5" id="telemetry-battery">-- %</span>
-                                            <span class="text-success"><i
-                                                    class="bi bi-lightning-charge-fill"></i></span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%">
+                            <!-- Dispositifs IoT -->
+                            <div class="col-12 col-sm-6 col-xl-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <p class="text-muted mb-1 small text-uppercase fw-bold">Dispositifs IoT
+                                                </p>
+                                                <h3 class="mb-0 fw-bold text-dark"><span
+                                                        id="kpi-online-devices">--</span> /
+                                                    <span id="kpi-total-devices">--</span>
+                                                </h3>
+                                                <small class="text-success fw-medium"><i class="bi bi-wifi"></i> En
+                                                    ligne</small>
+                                            </div>
+                                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                                                <i class="bi bi-cpu-fill fs-3"></i>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div class="alert alert-light border mt-4 mb-0">
-                                        <div class="d-flex">
-                                            <i class="bi bi-info-circle-fill text-primary me-2 mt-1"></i>
-                                            <small class="text-muted">Données synchronisées avec le cloud ThingsBoard
-                                                toutes les 10 secondes.</small>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Graphiques -->
-                    <div class="row g-4">
-                        <div class="col-12 col-lg-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0 py-3">
-                                    <h5 class="mb-0 fw-bold text-dark"><i
-                                            class="bi bi-graph-up me-2 text-primary"></i>Historique Qualité (pH)</h5>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="water-quality-chart" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-lg-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0 py-3">
-                                    <h5 class="mb-0 fw-bold text-dark"><i
-                                            class="bi bi-pie-chart me-2 text-primary"></i>Zones de Pêche</h5>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="zones-chart" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section Alertes Récentes -->
-                    <div class="row g-4 mt-2">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div
-                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0 fw-bold text-dark">
-                                        <i class="bi bi-bell-fill me-2 text-danger"></i>Alertes Récentes
-                                    </h5>
-                                    <div>
-                                        <% if (locals.userRole==='admin' || locals.userRole==='technicien' ) { %>
-                                            <button id="btn-simulate" class="btn btn-sm btn-outline-danger me-2"
-                                                onclick="simulateAlert()">
-                                                <i class="bi bi-lightning-charge-fill me-1"></i>Simuler
-                                            </button>
-                                            <% } %>
-                                                <a href="/admin/alertes" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-arrow-right me-1"></i>Voir toutes
-                                                </a>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div id="recent-alerts-container">
-                                        <div class="text-center py-4">
-                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                                <span class="visually-hidden">Chargement...</span>
+                            <!-- Total Bateaux -->
+                            <div class="col-12 col-sm-6 col-xl-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <p class="text-muted mb-1 small text-uppercase fw-bold">Total Bateaux
+                                                </p>
+                                                <h3 class="mb-0 fw-bold text-dark" id="kpi-total-boats">--</h3>
+                                                <small class="text-muted"><i class="bi bi-boat"></i> Flotte
+                                                    complète</small>
                                             </div>
-                                            <p class="text-muted mt-2 mb-0 small">Chargement des alertes...</p>
+                                            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                                <i class="bi bi-speedometer2 fs-3"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        <% } %>
 
-                    <!-- Historique Récent -->
-                    <div class="row g-4 mt-2 mb-4">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div
-                                    class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0 fw-bold text-dark">
-                                        <i class="bi bi-clock-history me-2 text-secondary"></i>Dernières Activités
-                                    </h5>
-                                    <a href="/admin/historique" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-arrow-right me-1"></i>Voir tout
-                                    </a>
+                            <!-- KPI Cards avec Données ThingsBoard -->
+                            <div class="row g-4 mb-4">
+                                <!-- Bateaux Actifs -->
+                                <div class="col-12 col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">Bateaux
+                                                        Actifs</p>
+                                                    <h3 class="mb-0 fw-bold text-dark" id="kpi-boats">0</h3>
+                                                    <small class="text-success fw-medium"><i
+                                                            class="bi bi-broadcast"></i> En
+                                                        ligne</small>
+                                                </div>
+                                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                                    <i class="bi bi-geo-alt-fill fs-3"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle mb-0">
-                                            <thead class="bg-light">
-                                                <tr>
-                                                    <th class="border-0 ps-4">Utilisateur</th>
-                                                    <th class="border-0">Action</th>
-                                                    <th class="border-0">Détails</th>
-                                                    <th class="border-0 text-end pe-4">Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="recent-history-table">
-                                                <tr>
-                                                    <td colspan="4" class="text-center py-4"><span
-                                                            class="spinner-border spinner-border-sm text-secondary"></span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+
+                                <!-- Qualité Eau (pH) - Cloud -->
+                                <div class="col-12 col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">pH Moyen
+                                                        (Cloud)</p>
+                                                    <h3 class="mb-0 fw-bold text-dark" id="kpi-ph">--</h3>
+                                                    <small id="kpi-ph-status" class="text-muted"><i
+                                                            class="bi bi-activity"></i>
+                                                        En attente...</small>
+                                                </div>
+                                                <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                                    <i class="bi bi-droplet-half fs-3"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Température Eau - Cloud -->
+                                <div class="col-12 col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">Température
+                                                    </p>
+                                                    <h3 class="mb-0 fw-bold text-dark" id="kpi-temp">--°C</h3>
+                                                    <small class="text-success fw-medium"><i
+                                                            class="bi bi-thermometer-half"></i>
+                                                        Optimale</small>
+                                                </div>
+                                                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                                    <i class="bi bi-water fs-3"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Alertes Critiques -->
+                                <div class="col-12 col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">Alertes
+                                                        Actives</p>
+                                                    <h3 class="mb-0 fw-bold text-dark" id="kpi-alerts">0</h3>
+                                                    <small class="text-muted"><i class="bi bi-shield-check"></i> Aucune
+                                                        urgence</small>
+                                                </div>
+                                                <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                                                    <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+
+                            <!-- Main Content Row -->
+                            <div class="row g-4 mb-4">
+                                <!-- Carte des Bateaux -->
+                                <div class="col-12 col-lg-8">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-header bg-white border-0 py-3">
+                                            <h5 class="mb-0 fw-bold text-dark"><i
+                                                    class="bi bi-map me-2 text-primary"></i>Positions des Bateaux</h5>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div id="dashboard-map" style="height: 400px; width: 100%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Données Télémétrie Détail -->
+                                <div class="col-12 col-lg-4">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div
+                                            class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0 fw-bold text-dark"><i
+                                                    class="bi bi-cpu me-2 text-primary"></i>Capteurs (Temps Réel)</h5>
+                                            <span class="badge bg-success bg-opacity-10 text-success pulse">LIVE</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-4">
+                                                <label class="small text-muted mb-1">Turbidité (Eau)</label>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fw-bold fs-5" id="telemetry-turbidity">-- NTU</span>
+                                                    <span class="badge bg-info">Normal</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" role="progressbar"
+                                                        style="width: 25%">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="small text-muted mb-1">Niveau Batterie (Solaire)</label>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fw-bold fs-5" id="telemetry-battery">-- %</span>
+                                                    <span class="text-success"><i
+                                                            class="bi bi-lightning-charge-fill"></i></span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" role="progressbar"
+                                                        style="width: 85%">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="alert alert-light border mt-4 mb-0">
+                                                <div class="d-flex">
+                                                    <i class="bi bi-info-circle-fill text-primary me-2 mt-1"></i>
+                                                    <small class="text-muted">Données synchronisées avec le cloud
+                                                        ThingsBoard
+                                                        toutes les 10 secondes.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Graphiques -->
+                            <div class="row g-4">
+                                <div class="col-12 col-lg-6">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white border-0 py-3">
+                                            <h5 class="mb-0 fw-bold text-dark"><i
+                                                    class="bi bi-graph-up me-2 text-primary"></i>Historique Qualité (pH)
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="water-quality-chart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white border-0 py-3">
+                                            <h5 class="mb-0 fw-bold text-dark"><i
+                                                    class="bi bi-pie-chart me-2 text-primary"></i>Zones de Pêche</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="zones-chart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Alertes Récentes -->
+                            <div class="row g-4 mt-2">
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm">
+                                        <div
+                                            class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0 fw-bold text-dark">
+                                                <i class="bi bi-bell-fill me-2 text-danger"></i>Alertes Récentes
+                                            </h5>
+                                            <div>
+                                                <% if (locals.userRole==='admin' || locals.userRole==='technicien' ) {
+                                                    %>
+                                                    <button id="btn-simulate" class="btn btn-sm btn-outline-danger me-2"
+                                                        onclick="simulateAlert()">
+                                                        <i class="bi bi-lightning-charge-fill me-1"></i>Simuler
+                                                    </button>
+                                                    <% } %>
+                                                        <a href="/admin/alertes" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-arrow-right me-1"></i>Voir toutes
+                                                        </a>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div id="recent-alerts-container">
+                                                <div class="text-center py-4">
+                                                    <div class="spinner-border spinner-border-sm text-primary"
+                                                        role="status">
+                                                        <span class="visually-hidden">Chargement...</span>
+                                                    </div>
+                                                    <p class="text-muted mt-2 mb-0 small">Chargement des alertes...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Historique Récent -->
+                            <div class="row g-4 mt-2 mb-4">
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm">
+                                        <div
+                                            class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0 fw-bold text-dark">
+                                                <i class="bi bi-clock-history me-2 text-secondary"></i>Dernières
+                                                Activités
+                                            </h5>
+                                            <a href="/admin/historique" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-arrow-right me-1"></i>Voir tout
+                                            </a>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle mb-0">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th class="border-0 ps-4">Utilisateur</th>
+                                                            <th class="border-0">Action</th>
+                                                            <th class="border-0">Détails</th>
+                                                            <th class="border-0 text-end pe-4">Date</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="recent-history-table">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center py-4"><span
+                                                                    class="spinner-border spinner-border-sm text-secondary"></span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                 </main>
         </div>
 

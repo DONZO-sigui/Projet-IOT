@@ -28,9 +28,11 @@
                             <button class="btn btn-outline-primary" onclick="refreshZones()">
                                 <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
                             </button>
-                            <button class="btn btn-primary" onclick="startDrawing()">
-                                <i class="bi bi-plus-circle me-2"></i>Nouvelle Zone
-                            </button>
+                            <% if (locals.userRole==='admin' ) { %>
+                                <button class="btn btn-primary" onclick="startDrawing()">
+                                    <i class="bi bi-plus-circle me-2"></i>Nouvelle Zone
+                                </button>
+                                <% } %>
                         </div>
                     </div>
 
@@ -261,12 +263,14 @@
               <button class="btn btn-sm btn-outline-primary" onclick="centerOnZone(${zone.id})">
                 <i class="bi bi-crosshair"></i> Centrer
               </button>
+              <% if (locals.userRole === 'admin') { %>
               <button class="btn btn-sm btn-outline-info" onclick="editZone(${zone.id})">
                 <i class="bi bi-pencil"></i> Modifier
               </button>
               <button class="btn btn-sm btn-outline-danger" onclick="deleteZoneConfirm(${zone.id})">
                 <i class="bi bi-trash"></i>
               </button>
+              <% } %>
             </div>
           </div>
         </div>

@@ -110,7 +110,21 @@ app.get('/api/history/gps', authMiddleware.authenticate, async (req, res) => {
     let params = [];
     let idx = 1;
 
-    if (boatId) { conditions.push(`gp.boat_id = $${idx++}`); params.push(boatId); }
+    if (boatId) {
+      // Sécurité: Si pêcheur, vérifier que le bateau lui appartient
+      if (req.user.role === 'pecheur') {
+        const [boat] = (await pool.query('SELECT owner_id FROM boats WHERE id = $1', [boatId])).rows;
+        if (!boat || boat.owner_id !== req.user.id) {
+          return res.status(403).json({ error: 'Accès non autorisé à ce bateau' });
+        }
+      }
+      conditions.push(`gp.boat_id = $${idx++}`);
+      params.push(boatId);
+    } else if (req.user.role === 'pecheur') {
+      // Si pas de boatId spécifié et c'est un pêcheur, on limite à ses propres bateaux via une jointure
+      conditions.push(`b.owner_id = $${idx++}`);
+      params.push(req.user.id);
+    }
     if (start) { conditions.push(`gp.timestamp >= $${idx++}`); params.push(start); }
     if (end) { conditions.push(`gp.timestamp <= $${idx++}`); params.push(end + 'T23:59:59'); }
 

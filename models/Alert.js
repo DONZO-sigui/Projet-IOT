@@ -245,6 +245,33 @@ class Alert {
     }
 
     /**
+     * Compter les alertes par statut pour un propriétaire spécifique
+     * @param {number} ownerId - ID du propriétaire
+     * @returns {Promise<Object>} Statistiques
+     */
+    static async getStatsByOwner(ownerId) {
+        const sql = `
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE a.acknowledged = FALSE) as active,
+        COUNT(*) FILTER (WHERE a.acknowledged = TRUE) as resolved,
+        COUNT(*) FILTER (WHERE a.severity = 'critical' AND a.acknowledged = FALSE) as critical,
+        COUNT(*) FILTER (WHERE a.severity = 'warning') as warning,
+        COUNT(*) FILTER (WHERE a.severity = 'info') as info
+      FROM alerts a
+      JOIN boats b ON a.boat_id = b.id
+      WHERE b.owner_id = $1
+    `;
+
+        try {
+            const result = await pool.query(sql, [ownerId]);
+            return result.rows[0];
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
      * Supprimer les anciennes alertes acquittées
      * @param {number} days - Âge max en jours
      * @returns {Promise<Object>} Résultat

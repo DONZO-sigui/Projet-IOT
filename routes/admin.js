@@ -10,16 +10,30 @@ const User = require('../models/User');
 const Alert = require('../models/Alert');
 const settingsController = require('../controllers/settingsController');
 
-// Middleware pour injecter le nombre d'alertes actives dans toutes les vues admin
-async function injectAlertsCount(req, res, next) {
+// Middleware pour injecter les statistiques de la sidebar (alertes, bateaux)
+async function injectSidebarStats(req, res, next) {
   try {
     if (req.user) {
-      const stats = await Alert.getStats();
-      res.locals.alertsCount = parseInt(stats.active) || 0;
+      if (req.user.role === 'pecheur') {
+        // Stats personnelles pour le pêcheur
+        const alertStats = await Alert.getStatsByOwner(req.user.id);
+        res.locals.alertsCount = parseInt(alertStats.active) || 0;
+
+        const activeBoatsCount = await Boat.countActiveByOwner(req.user.id);
+        res.locals.activeBoatsCount = activeBoatsCount;
+      } else {
+        // Stats globales pour Admin/Technicien/etc.
+        const alertStats = await Alert.getStats();
+        res.locals.alertsCount = parseInt(alertStats.active) || 0;
+
+        const activeBoatsCount = await Boat.countActive();
+        res.locals.activeBoatsCount = activeBoatsCount;
+      }
     }
   } catch (err) {
-    // Ne pas bloquer le rendu si la requête échoue
+    console.error('Erreur injection stats sidebar:', err);
     res.locals.alertsCount = 0;
+    res.locals.activeBoatsCount = 0;
   }
   next();
 }
@@ -36,7 +50,7 @@ router.get('/register', (req, res) => {
 // Routes protégées (nécessite authentification)
 
 // Dashboard principal
-router.get('/dashboard', authMiddleware.authenticate, injectAlertsCount, async (req, res) => {
+router.get('/dashboard', authMiddleware.authenticate, injectSidebarStats, async (req, res) => {
   try {
     res.locals.currentPath = '/admin/dashboard';
     const activeBoatsCount = await Boat.countActive();
@@ -52,11 +66,11 @@ router.get('/dashboard', authMiddleware.authenticate, injectAlertsCount, async (
   }
 });
 
-// Qualité de l'eau (admin uniquement)
+// Qualité de l'eau (Non-pêcheurs)
 router.get('/ia-qualite',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin', 'pecheur']),
-  injectAlertsCount,
+  authMiddleware.authorize(['admin', 'technicien', 'observateur']),
+  injectSidebarStats,
   (req, res) => {
     res.locals.currentPath = '/admin/ia-qualite';
     res.render('admin/ia-qualite', {
@@ -66,17 +80,21 @@ router.get('/ia-qualite',
   });
 
 // Suivi GPS (accessible à tous, mais filtré par contrôleur)
-router.get('/gps-tracking', authMiddleware.authenticate, injectAlertsCount, boatController.trackingPage);
+router.get('/gps-tracking', authMiddleware.authenticate, injectSidebarStats, boatController.trackingPage);
+
+// Mon Profil
+router.get('/profil', authMiddleware.authenticate, injectSidebarStats, userController.profilePage);
+router.post('/profil', authMiddleware.authenticate, userController.updateUserProfile);
 
 // Gestion des zones (accessible à tous, lecture seule pour pecheur?)
 // Pour l'instant on laisse accessible, le contrôleur filtre peut-être
-router.get('/zones', authMiddleware.authenticate, injectAlertsCount, zoneController.zonesPage);
+router.get('/zones', authMiddleware.authenticate, injectSidebarStats, zoneController.zonesPage);
 
 // Gestion des alertes (admin uniquement pour la vue globale)
 router.get('/alertes',
   authMiddleware.authenticate,
   authMiddleware.authorize(['admin', 'pecheur']),
-  injectAlertsCount,
+  injectSidebarStats,
   (req, res) => {
     res.locals.currentPath = '/admin/alertes';
     res.render('admin/alertes', {
@@ -85,19 +103,19 @@ router.get('/alertes',
     });
   });
 
-// Gestion des utilisateurs (admin uniquement)
+// Gestion des utilisateurs (Admin Only)
 router.get('/utilisateurs',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin', 'pecheur']),
-  injectAlertsCount,
+  authMiddleware.authorize(['admin']),
+  injectSidebarStats,
   userController.usersPage
 );
 
-// Paramètres système (admin uniquement)
+// Paramètres système (Admin Only)
 router.get('/parametres',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin', 'pecheur']),
-  injectAlertsCount,
+  authMiddleware.authorize(['admin']),
+  injectSidebarStats,
   (req, res) => {
     res.locals.currentPath = '/admin/parametres';
     res.render('admin/parametres', {
@@ -107,11 +125,11 @@ router.get('/parametres',
   }
 );
 
-// Historique des données (admin + pecheur)
+// Historique des données (Non-pêcheurs)
 router.get('/historique',
   authMiddleware.authenticate,
-  authMiddleware.authorize(['admin', 'pecheur']),
-  injectAlertsCount,
+  authMiddleware.authorize(['admin', 'technicien']),
+  injectSidebarStats,
   (req, res) => {
     res.locals.currentPath = '/admin/historique';
     res.render('admin/historique', {

@@ -65,7 +65,12 @@ exports.getActiveAlerts = async (req, res) => {
  */
 exports.getStats = async (req, res) => {
     try {
-        const stats = await Alert.getStats();
+        let stats;
+        if (req.user && req.user.role === 'pecheur') {
+            stats = await Alert.getStatsByOwner(req.user.id);
+        } else {
+            stats = await Alert.getStats();
+        }
         res.json({ success: true, stats });
     } catch (error) {
         console.error('Erreur récupération stats alertes:', error);

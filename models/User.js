@@ -158,6 +158,41 @@ class User {
   }
 
   /**
+   * Mettre à jour les informations de profil (email, username)
+   * @param {number} id - ID de l'utilisateur
+   * @param {string} username - Nouveau nom d'utilisateur
+   * @param {string} email - Nouvel email
+   * @returns {Promise<Object>} L'utilisateur mis à jour
+   */
+  static async updateProfile(id, username, email) {
+    const query = `
+      UPDATE users 
+      SET username = $1, email = $2, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $3 
+      RETURNING id, username, email, role, active, updated_at
+    `;
+    const result = await pool.query(query, [username, email, id]);
+    return result.rows[0];
+  }
+
+  /**
+   * Mettre à jour le mot de passe d'un utilisateur
+   * @param {number} id - ID de l'utilisateur
+   * @param {string} newPassword - Nouveau mot de passe en clair
+   * @returns {Promise<boolean>} True si succès
+   */
+  static async updatePassword(id, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const query = `
+      UPDATE users 
+      SET password = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $2
+    `;
+    const result = await pool.query(query, [hashedPassword, id]);
+    return result.rowCount > 0;
+  }
+
+  /**
    * Supprimer un utilisateur
    * @param {number} id - ID de l'utilisateur à supprimer
    * @returns {Promise<boolean>} True si supprimé avec succès

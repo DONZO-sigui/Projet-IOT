@@ -13,10 +13,22 @@ const Alert = require('../models/Alert');
  */
 router.get('/stats', authMiddleware.authenticate, async (req, res) => {
     try {
-        const userStats = await User.getStats();
-        const boatStats = await Boat.getStats();
-        const deviceStats = await Device.getStats();
-        const alertStats = await Alert.getStats();
+        let userStats = { total: 0 };
+        let boatStats, deviceStats, alertStats;
+
+        if (req.user && req.user.role === 'pecheur') {
+            // Stats personnelles pour le pêcheur
+            boatStats = await Boat.getStatsByOwner(req.user.id);
+            alertStats = await Alert.getStatsByOwner(req.user.id);
+            deviceStats = { total: 0, online: 0 }; // Masquer les devices globaux
+            // userStats reste à 0
+        } else {
+            // Stats globales pour Admin/Technicien/etc.
+            userStats = await User.getStats();
+            boatStats = await Boat.getStats();
+            deviceStats = await Device.getStats();
+            alertStats = await Alert.getStats();
+        }
 
         res.json({
             success: true,
