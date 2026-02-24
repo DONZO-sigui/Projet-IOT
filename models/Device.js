@@ -164,6 +164,37 @@ class Device {
   }
 
   /**
+   * Mettre à jour un device (générique)
+   */
+  static async update(id, data) {
+    const fields = [];
+    const values = [];
+    let counter = 1;
+
+    const allowedFields = ['boat_id', 'device_name', 'device_type', 'thingsboard_device_id', 'thingsboard_token', 'status', 'battery_level', 'signal_strength', 'active'];
+
+    for (const key of allowedFields) {
+      if (data[key] !== undefined) {
+        fields.push(`${key} = $${counter++}`);
+        values.push(data[key]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    values.push(id);
+    const query = `
+      UPDATE devices
+      SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${counter}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
+  /**
    * Supprimer un device (soft delete)
    */
   static async delete(id) {

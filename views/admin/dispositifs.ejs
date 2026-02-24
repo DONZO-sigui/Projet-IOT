@@ -1,4 +1,4 @@
-<%- include('../partials/header') %>
+﻿<%- include('../partials/header') %>
     <link rel="stylesheet" href="/css/admin.css">
     <!-- Chart.js pour les graphiques -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -123,6 +123,9 @@
                                                     <li><a class="dropdown-item" href="#"
                                                             onclick="showDeviceDetails('<%= device.id %>')"><i
                                                                 class="bi bi-eye me-2"></i>Détails</a></li>
+                                                    <li><a class="dropdown-item" href="#"
+                                                            onclick="editDevice('<%= device.id %>')"><i
+                                                                class="bi bi-gear me-2"></i>Configurer</a></li>
                                                     <li><a class="dropdown-item" href="#"
                                                             onclick="rebootDevice('<%= device.id %>')"><i
                                                                 class="bi bi-arrow-clockwise me-2"></i>Redémarrer</a>
@@ -304,6 +307,58 @@
                         </div>
                     </div>
 
+                    <!-- Modal Edition Device -->
+                    <div class="modal fade" id="editDeviceModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Configurer le Dispositif</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editDeviceForm">
+                                        <input type="hidden" name="id" id="editDeviceId">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom du device</label>
+                                            <input type="text" class="form-control" name="device_name"
+                                                id="editDeviceName" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">ID ThingsBoard</label>
+                                                <input type="text" class="form-control" name="thingsboard_device_id"
+                                                    id="editTbId">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Access Token</label>
+                                                <input type="text" class="form-control" name="thingsboard_token"
+                                                    id="editTbToken">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Bateau</label>
+                                            <select class="form-select" name="boat_id" id="editBoatId" required>
+                                                <% if (boats && boats.length> 0) { %>
+                                                    <% boats.forEach(function(boat) { %>
+                                                        <option value="<%= boat.id %>">
+                                                            <%= boat.name %>
+                                                        </option>
+                                                        <% }); %>
+                                                            <% } %>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Annuler</button>
+                                    <button type="button" class="btn btn-primary" onclick="submitEditDevice()">Mettre à
+                                        jour</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Modal Ajout Device -->
                     <div class="modal fade" id="addDeviceModal" tabindex="-1">
                         <div class="modal-dialog">
@@ -328,11 +383,19 @@
                                                 <option value="gateway">Gateway IoT</option>
                                             </select>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">ID ThingsBoard (Optionnel)</label>
-                                            <input type="text" class="form-control" name="thingsboard_device_id">
-                                            <small class="form-text text-muted">Laissez vide pour génération
-                                                automatique</small>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">ID ThingsBoard (Optionnel)</label>
+                                                <input type="text" class="form-control" name="thingsboard_device_id"
+                                                    placeholder="UUID">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Access Token ThingsBoard</label>
+                                                <input type="text" class="form-control" name="thingsboard_token"
+                                                    placeholder="Token d'accès">
+                                                <small class="form-text text-muted">Requis pour l'envoi de
+                                                    données</small>
+                                            </div>
                                         </div>
                                         <!-- Sélection du bateau -->
                                         <div class="mb-3">
@@ -434,6 +497,10 @@
                         <tr>
                             <td class="text-muted">ID ThingsBoard:</td>
                             <td><code class="small">${device.thingsboard_device_id || 'N/A'}</code></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Access Token:</td>
+                            <td><code class="small text-success">${device.thingsboard_token || 'Non configuré'}</code></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Créé le:</td>
@@ -610,6 +677,52 @@
                     } catch (error) {
                         alert('Erreur lors de l\'envoi de la commande');
                     }
+                }
+            }
+
+            async function editDevice(id) {
+                try {
+                    const response = await fetch(`/admin/dispositifs/${id}`);
+                    const data = await response.json();
+
+                    if (!data.success) throw new Error(data.error);
+
+                    const { device } = data;
+                    document.getElementById('editDeviceId').value = device.id;
+                    document.getElementById('editDeviceName').value = device.device_name;
+                    document.getElementById('editTbId').value = device.thingsboard_device_id || '';
+                    document.getElementById('editTbToken').value = device.thingsboard_token || '';
+                    document.getElementById('editBoatId').value = device.boat_id;
+
+                    const modal = new bootstrap.Modal(document.getElementById('editDeviceModal'));
+                    modal.show();
+                } catch (error) {
+                    alert('Erreur lors de la récupération des infos: ' + error.message);
+                }
+            }
+
+            async function submitEditDevice() {
+                const id = document.getElementById('editDeviceId').value;
+                const form = document.getElementById('editDeviceForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch(`/admin/dispositifs/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Configuration mise à jour !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Erreur lors de la mise à jour');
                 }
             }
 

@@ -78,6 +78,11 @@ exports.getBoatDetails = async (req, res) => {
 
         const lastPosition = await GpsPosition.getLatestByBoat(id);
 
+        // Sécurité : Un pêcheur ne peut voir que ses propres bateaux
+        if (req.user && req.user.role === 'pecheur' && boat.owner_id !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Accès refusé : ce bateau ne vous appartient pas' });
+        }
+
         res.json({
             success: true,
             boat: {
@@ -105,8 +110,14 @@ exports.createBoat = async (req, res) => {
             });
         }
 
-        // Vérifier que le propriétaire existe et est un pêcheur
-        if (!ownerId) {
+        let finalOwnerId = ownerId;
+        let finalStatus = 'active';
+
+        // Si l'utilisateur est un pêcheur, il ne peut enregistrer que pour lui-même et en 'pending'
+        if (req.user.role === 'pecheur') {
+            finalOwnerId = req.user.id;
+            finalStatus = 'pending';
+        } else if (!ownerId) {
             return res.status(400).json({
                 success: false,
                 error: 'Vous devez sélectionner un propriétaire pour le bateau'
@@ -114,7 +125,7 @@ exports.createBoat = async (req, res) => {
         }
 
         const User = require('../models/User');
-        const owner = await User.findById(ownerId);
+        const owner = await User.findById(finalOwnerId);
 
         if (!owner) {
             return res.status(400).json({
@@ -130,7 +141,7 @@ exports.createBoat = async (req, res) => {
             });
         }
 
-        const boat = await Boat.create(name, registrationNumber, ownerId, deviceId);
+        const boat = await Boat.create(name, registrationNumber, finalOwnerId, deviceId, finalStatus);
 
         // NOUVEAU: Enregistrer la position initiale si fournie
         const { latitude, longitude } = req.body;
@@ -152,7 +163,9 @@ exports.createBoat = async (req, res) => {
         res.json({
             success: true,
             boat,
-            message: `Bateau "${name}" créé et assigné à ${owner.username}`
+            message: req.user.role === 'pecheur'
+                ? `Demande d'enregistrement du bateau "${name}" envoyée avec succès. En attente de validation par un administrateur.`
+                : `Bateau "${name}" créé et assigné à ${owner.username}`
         });
     } catch (error) {
         console.error('Erreur création bateau:', error);
@@ -168,8 +181,15 @@ exports.createBoat = async (req, res) => {
  */
 exports.updateBoat = async (req, res) => {
     try {
-        const { id } = req.params;
-        const data = req.body;
+        // Sécurité : Un pêcheur ne peut modifier que ses propres bateaux
+        const boat = await Boat.findById(id);
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        if (req.user && req.user.role === 'pecheur' && boat.owner_id !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Accès refusé : vous ne pouvez pas modifier ce bateau' });
+        }
 
         const result = await Boat.update(id, data);
 
@@ -192,7 +212,16 @@ exports.updateBoat = async (req, res) => {
  */
 exports.deleteBoat = async (req, res) => {
     try {
-        const { id } = req.params;
+        // Sécurité : Un pêcheur ne peut supprimer que ses propres bateaux
+        const boat = await Boat.findById(id);
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        if (req.user && req.user.role === 'pecheur' && boat.owner_id !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Accès refusé : vous ne pouvez pas supprimer ce bateau' });
+        }
+
         const result = await Boat.delete(id);
 
         if (result.changes === 0) {
@@ -217,6 +246,16 @@ exports.getBoatPositions = async (req, res) => {
         const { id } = req.params;
         const { limit = 50 } = req.query;
 
+        // Sécurité : Un pêcheur ne peut voir les positions que de ses propres bateaux
+        const boat = await Boat.findById(id);
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        if (req.user && req.user.role === 'pecheur' && boat.owner_id !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Accès refusé' });
+        }
+
         const positions = await GpsPosition.getRecentPositions(id, parseInt(limit));
         res.json({ success: true, positions });
     } catch (error) {
@@ -230,15 +269,39 @@ exports.getBoatPositions = async (req, res) => {
  */
 exports.recordPosition = async (req, res) => {
     try {
-        const { boatId, latitude, longitude, speed, heading, altitude } = req.body;
-        console.log(`📡 Réception position pour bateau ${boatId}: [${latitude}, ${longitude}]`);
+        let { boatId, deviceId, latitude, longitude, speed, heading, altitude } = req.body;
+
+        // Si on a deviceId mais pas boatId, on cherche le bateau
+        if (!boatId && deviceId) {
+            const boat = await Boat.findByDeviceId(deviceId);
+            if (boat) {
+                boatId = boat.id;
+            } else {
+                return res.status(404).json({ success: false, error: 'Bateau non trouvé pour ce deviceId' });
+            }
+        }
 
         if (!boatId || !latitude || !longitude) {
             return res.status(400).json({
                 success: false,
-                error: 'boatId, latitude et longitude requis'
+                error: 'boatId (ou deviceId), latitude et longitude requis'
             });
         }
+
+        // Vérifier si le bateau existe et est actif
+        const boat = await Boat.findById(boatId);
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        if (boat.status !== 'active' && boat.status !== 'maintenance') {
+            return res.status(403).json({
+                success: false,
+                error: `Le bateau est en statut "${boat.status}". Acquisition GPS refusée.`
+            });
+        }
+
+        console.log(`📡 Réception position pour bateau ${boat.name} (${boatId}): [${latitude}, ${longitude}]`);
 
         const position = await GpsPosition.create(
             boatId,
@@ -289,6 +352,97 @@ exports.recordPosition = async (req, res) => {
         }
     } catch (error) {
         console.error('Erreur enregistrement position:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Approuver un bateau (Admin uniquement)
+ */
+exports.approveBoat = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const boat = await Boat.findById(id);
+
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        await Boat.update(id, { status: 'active' });
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'APPROVE_BOAT', 'boat', id, `Approbation du bateau ${boat.name}`);
+
+        res.json({ success: true, message: `Le bateau "${boat.name}" a été approuvé avec succès.` });
+    } catch (error) {
+        console.error('Erreur approbation bateau:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Rejeter/Supprimer un bateau (Admin uniquement)
+ */
+exports.rejectBoat = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const boat = await Boat.findById(id);
+
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        // On peut soit supprimer, soit marquer comme rejeté. 
+        // Ici on le supprime pour ne pas encombrer, car c'est un rejet d'inscription.
+        await Boat.delete(id);
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'REJECT_BOAT', 'boat', id, `Rejet et suppression du bateau ${boat.name}`);
+
+        res.json({ success: true, message: `La demande pour le bateau "${boat.name}" a été rejetée et supprimée.` });
+    } catch (error) {
+        console.error('Erreur rejet bateau:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Mettre à jour manuellement la position d'un bateau (Admin uniquement)
+ */
+exports.updateBoatPosition = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { latitude, longitude, speed, heading } = req.body;
+
+        if (!latitude || !longitude) {
+            return res.status(400).json({ success: false, error: 'Latitude et longitude requises' });
+        }
+
+        const boat = await Boat.findById(id);
+        if (!boat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        // Créer une nouvelle position GPS
+        const position = await GpsPosition.create(
+            id,
+            parseFloat(latitude),
+            parseFloat(longitude),
+            parseFloat(speed) || 0, // speed
+            parseFloat(heading) || 0, // heading
+            0  // altitude
+        );
+
+        // Log activity
+        await ActivityLog.log(req.user.id, 'MANUAL_POSITION_UPDATE', 'boat', id, `Mise à jour manuelle de la position du bateau ${boat.name} : [${latitude}, ${longitude}]`);
+
+        res.json({
+            success: true,
+            message: `La position du bateau "${boat.name}" a été mise à jour manuellement.`,
+            position
+        });
+    } catch (error) {
+        console.error('Erreur mise à jour manuelle position:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 };

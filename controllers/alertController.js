@@ -159,24 +159,49 @@ exports.deleteAlert = async (req, res) => {
  */
 exports.generateMockAlert = async (req, res) => {
     try {
-        // Scénarios possibles
-        const scenarios = [
-            { type: 'sos', severity: 'critical', message: '🆘 APPEL DE DÉTRESSE ! SOS signalé.' },
-            { type: 'zone_violation', severity: 'warning', message: '🚫 Entrée dans une zone interdite (Zone Rouge).' },
-            { type: 'speed', severity: 'warning', message: '⚡ Vitesse excessive détectée (> 45 nœuds).' },
-            { type: 'battery', severity: 'info', message: '🔋 Batterie faible sur le capteur GPS.' },
-            { type: 'sensor_loss', severity: 'info', message: '📡 Perte de signal temporaire du capteur.' }
-        ];
+        // Données optionnelles passées dans le corps (ex: pour SOS manuel)
+        const { type, severity, message, boatId } = req.body;
 
-        // Choisir un scénario aléatoire
-        const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+        let selectedBoat;
+        if (boatId) {
+            selectedBoat = await Boat.findById(boatId);
+        } else {
+            // Choisir un bateau de l'utilisateur si pêcheur, sinon un bateau au hasard
+            let boats;
+            if (req.user && req.user.role === 'pecheur') {
+                boats = await Boat.findByOwner(req.user.id);
+            } else {
+                boats = await Boat.findAll();
+            }
 
-        // Choisir un bateau aléatoire
-        const boats = await Boat.findAll();
-        if (boats.length === 0) {
-            return res.status(400).json({ success: false, error: 'Aucun bateau disponible pour la simulation.' });
+            if (!boats || boats.length === 0) {
+                return res.status(400).json({ success: false, error: 'Aucun bateau disponible pour générer l\'alerte.' });
+            }
+            selectedBoat = boats[Math.floor(Math.random() * boats.length)];
         }
-        const boat = boats[Math.floor(Math.random() * boats.length)];
+
+        if (!selectedBoat) {
+            return res.status(404).json({ success: false, error: 'Bateau non trouvé' });
+        }
+
+        // Définir le scénario (utiliser le corps ou un défaut aléatoire)
+        let alertType = type || 'zone_violation';
+        let alertSeverity = severity || 'warning';
+        let alertMessage = message || `Alerte automatique sur le bateau ${selectedBoat.name}`;
+
+        if (!type && !severity && !message) {
+            const scenarios = [
+                { type: 'sos', severity: 'critical', message: '🆘 APPEL DE DÉTRESSE ! SOS signalé.' },
+                { type: 'zone_violation', severity: 'warning', message: '🚫 Entrée dans une zone interdite (Zone Rouge).' },
+                { type: 'speed', severity: 'warning', message: '⚡ Vitesse excessive détectée (> 45 nœuds).' },
+                { type: 'battery', severity: 'info', message: '🔋 Batterie faible sur le capteur GPS.' },
+                { type: 'sensor_loss', severity: 'info', message: '📡 Perte de signal temporaire du capteur.' }
+            ];
+            const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            alertType = scenario.type;
+            alertSeverity = scenario.severity;
+            alertMessage = `${scenario.message} (Bateau: ${selectedBoat.name})`;
+        }
 
         // Générer une position aléatoire autour de Conakry (pour le réalisme)
         const lat = 9.5 + (Math.random() * 0.1);
@@ -184,21 +209,21 @@ exports.generateMockAlert = async (req, res) => {
 
         // Créer l'alerte
         const alert = await Alert.create(
-            boat.id,
+            selectedBoat.id,
             null, // zoneId
-            scenario.type,
-            scenario.severity,
-            `${scenario.message} (Bateau: ${boat.name})`,
+            alertType,
+            alertSeverity,
+            alertMessage,
             lat,
             lng
         );
 
         // Log l'activité
         if (req.user) {
-            await ActivityLog.log(req.user.id, 'SIMULATE_ALERT', 'alert', alert.id, `Simulation alerte: ${scenario.type}`);
+            await ActivityLog.log(req.user.id, 'SIMULATE_ALERT', 'alert', alert.id, `Génération alerte: ${alertType}`);
         }
 
-        res.json({ success: true, alert, message: 'Alerte simulée générée avec succès !' });
+        res.json({ success: true, alert, message: 'Alerte générée avec succès !' });
 
     } catch (error) {
         console.error('Erreur génération alerte mock:', error);

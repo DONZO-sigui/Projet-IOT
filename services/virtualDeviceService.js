@@ -116,21 +116,40 @@ class VirtualDeviceService {
     }
 
     /**
-     * Générer une position GPS réaliste (mouvement lent)
+     * Obtenir la position GPS du bateau associé (ou simulation)
      */
-    generateGPS(state) {
-        const base = state.baseValues;
+    async generateGPS(boatId, state) {
+        // [NOUVEAU] Tenter de récupérer la vraie position du bateau depuis la base
+        if (boatId) {
+            try {
+                const GpsPosition = require('../models/GpsPosition');
+                const lastPos = await GpsPosition.getLatestByBoat(boatId);
 
-        // Déplacement lent (bateau à l'ancre ou en dérive)
-        const drift = 0.0001; // ~11 mètres
+                if (lastPos) {
+                    return {
+                        latitude: parseFloat(lastPos.latitude),
+                        longitude: parseFloat(lastPos.longitude),
+                        speed: parseFloat(lastPos.speed || 0),
+                        heading: parseFloat(lastPos.heading || 0),
+                        accuracy: 5
+                    };
+                }
+            } catch (err) {
+                console.error(`Erreur récup position pour simulation device ${boatId}:`, err);
+            }
+        }
+
+        // Fallback : Déplacement lent si aucune position en base
+        const base = state.baseValues;
+        const drift = 0.0001;
         base.lat += (Math.random() - 0.5) * drift;
         base.lng += (Math.random() - 0.5) * drift;
 
         return {
             latitude: parseFloat(base.lat.toFixed(6)),
             longitude: parseFloat(base.lng.toFixed(6)),
-            accuracy: 5 + Math.random() * 5, // 5-10 mètres
-            speed: Math.random() * 2, // 0-2 km/h (dérive)
+            accuracy: 5 + Math.random() * 5,
+            speed: Math.random() * 2,
             heading: Math.random() * 360
         };
     }
@@ -187,7 +206,7 @@ class VirtualDeviceService {
                 break;
 
             case 'gps':
-                telemetry.gps = this.generateGPS(state);
+                telemetry.gps = await this.generateGPS(device.boat_id, state);
                 break;
 
             case 'gateway':

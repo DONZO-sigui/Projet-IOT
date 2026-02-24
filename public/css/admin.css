@@ -159,9 +159,19 @@ body {
   text-align: center;
 }
 
-.sidebar-badge-danger {
-  background-color: var(--accent-danger);
-  animation: pulse-danger 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.sidebar-menu-item-sos {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5 !important;
+  border-left: 3px solid var(--accent-danger);
+  font-weight: 700;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.sidebar-menu-item-sos:hover {
+  background: var(--accent-danger);
+  color: white !important;
+  transform: scale(1.05);
 }
 
 @keyframes pulse {
@@ -172,8 +182,12 @@ body {
   }
 
   50% {
-    opacity: 0.8;
+    opacity: 0.5;
   }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse-danger {

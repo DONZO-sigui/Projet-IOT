@@ -70,9 +70,9 @@ class AiService {
     /**
      * Générer une réponse intelligente
      * @param {string} userQuery - Question de l'utilisateur
-     * @param {string} history - Historique optionnel (non géré ici pour simplicité)
+     * @param {string} extraInstructions - Instructions additionnelles (rôle, etc.)
      */
-    async ask(userQuery) {
+    async ask(userQuery, extraInstructions = "") {
         if (!this.apiKey || this.apiKey === 'votre_cle_ici') {
             console.warn("⚠️ HF_API_KEY non configurée ou invalide. Utilisation du fallback.");
             return this.getFallbackAnswer(userQuery);
@@ -93,7 +93,9 @@ ${context ? `DOCUMENTS DE RÉFÉRENCE (statistiques CNSHB) :\n${context}\n\n` : 
 Consignes :
 1. Réponds en français de manière concise (3-4 phrases).
 2. Utilise les DOCUMENTS DE RÉFÉRENCE pour donner des chiffres précis sur la pêche en Guinée si pertinent.
-3. Si la question est sur le pH ou la sécurité SOS, utilise tes connaissances techniques.`;
+3. Si la question est sur le pH ou la sécurité SOS, utilise tes connaissances techniques.
+
+${extraInstructions}`;
 
         try {
             const response = await axios.post(

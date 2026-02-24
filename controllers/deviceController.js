@@ -129,7 +129,31 @@ exports.createDevice = async (req, res) => {
 };
 
 /**
- * API: Mettre à jour la configuration
+ * API: Mettre à jour un device (générique)
+ */
+exports.updateDevice = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const device = await Device.update(id, req.body);
+
+        if (!device) {
+            return res.status(404).json({ success: false, error: 'Device non trouvé' });
+        }
+
+        // Log activity
+        if (req.user) {
+            await ActivityLog.log(req.user.id, 'UPDATE_DEVICE', 'device', id, `Mise à jour dispositif ${device.device_name}`);
+        }
+
+        res.json({ success: true, device, message: 'Configuration mise à jour' });
+    } catch (error) {
+        console.error('Erreur update device:', error);
+        res.status(500).json({ success: false, error: 'Erreur mise à jour dispositif' });
+    }
+};
+
+/**
+ * API: Mettre à jour la configuration (partie JSONB)
  */
 exports.updateConfig = async (req, res) => {
     try {

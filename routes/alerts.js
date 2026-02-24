@@ -27,6 +27,6 @@ router.put('/:id/acknowledge', authMiddleware.authenticate, alertController.ackn
 router.delete('/:id', authMiddleware.authenticate, authMiddleware.authorize(['admin']), alertController.deleteAlert);
 
 // Générer une alerte de simulation (pour démo)
-router.post('/generate', authMiddleware.authenticate, authMiddleware.authorize(['admin', 'technicien']), alertController.generateMockAlert);
+router.post('/generate', authMiddleware.authenticate, authMiddleware.authorize(['admin', 'technicien', 'pecheur']), alertController.generateMockAlert);
 
 module.exports = router;

@@ -190,13 +190,18 @@ app.listen(PORT, () => {
 
   // Démarrer la simulation IoT en arrière-plan
   const virtualDeviceService = require('./services/virtualDeviceService');
-  console.log("🤖 Démarrage de la simulation des capteurs IoT...");
+  const simulationService = require('./services/simulationService');
+
+  console.log("🤖 Démarrage des simulations (IoT & Mouvement)...");
+
   setInterval(async () => {
     try {
       await virtualDeviceService.generateAllTelemetry();
-      // console.log("📡 Télémétrie générée et envoyée."); // Décommenter pour debug
     } catch (err) {
       console.error("Erreur cycle simulation:", err);
     }
   }, 10000); // Toutes les 10 secondes
+
+  // Simulation du mouvement des bateaux
+  simulationService.start();
 });

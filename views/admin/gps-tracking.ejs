@@ -12,7 +12,8 @@
                     <nav aria-label="breadcrumb" class="mb-4">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/admin/dashboard"><i class="bi bi-house-door"></i>
-                                    Admin</a></li>
+                                    <%= locals.userRole==='pecheur' ? 'Mon Espace' : 'Administration' %>
+                                </a></li>
                             <li class="breadcrumb-item active" aria-current="page">Suivi GPS</li>
                         </ol>
                     </nav>
@@ -28,7 +29,8 @@
                                 <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
                             </button>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBoatModal">
-                                <i class="bi bi-plus-circle me-2"></i>Ajouter Bateau
+                                <i class="bi bi-plus-circle me-2"></i>
+                                <%= locals.userRole==='pecheur' ? 'Enregistrer mon Bateau' : 'Ajouter Bateau' %>
                             </button>
                         </div>
                     </div>
@@ -85,7 +87,10 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Ajouter un Bateau</h5>
+                                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>
+                                        <%= locals.userRole==='pecheur' ? 'Enregistrer mon Bateau' : 'Ajouter un Bateau'
+                                            %>
+                                    </h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <form id="addBoatForm">
@@ -98,57 +103,110 @@
                                             <label class="form-label">Numéro d'Immatriculation</label>
                                             <input type="text" class="form-control" name="registrationNumber" required>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Propriétaire (Pêcheur) <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-select" name="ownerId" required>
-                                                <option value="">-- Sélectionner un pêcheur --</option>
-                                                <% if (pecheurs && pecheurs.length> 0) { %>
-                                                    <% pecheurs.forEach(function(pecheur) { %>
-                                                        <option value="<%= pecheur.id %>">
-                                                            <%= pecheur.username %>
-                                                                <% if (pecheur.email) { %>
-                                                                    (<%= pecheur.email %>)
-                                                                        <% } %>
-                                                        </option>
-                                                        <% }); %>
-                                                            <% } else { %>
-                                                                <option value="" disabled>Aucun pêcheur disponible
-                                                                </option>
-                                                                <% } %>
-                                            </select>
-                                            <small class="form-text text-muted">
-                                                <i class="bi bi-info-circle me-1"></i>
-                                                Le bateau sera assigné au pêcheur sélectionné
-                                            </small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">ID Dispositif (ESP32)</label>
-                                            <input type="text" class="form-control" name="deviceId">
-                                            <small class="form-text text-muted">Optionnel - ID du dispositif IoT
-                                                embarqué</small>
+                                        <% if (locals.userRole !=='pecheur' ) { %>
+                                            <div class="mb-3">
+                                                <label class="form-label">Propriétaire (Pêcheur) <span
+                                                        class="text-danger">*</span></label>
+                                                <select class="form-select" name="ownerId" required>
+                                                    <option value="">-- Sélectionner un pêcheur --</option>
+                                                    <% if (pecheurs && pecheurs.length> 0) { %>
+                                                        <% pecheurs.forEach(function(pecheur) { %>
+                                                            <option value="<%= pecheur.id %>">
+                                                                <%= pecheur.username %>
+                                                                    <% if (pecheur.email) { %>
+                                                                        (<%= pecheur.email %>)
+                                                                            <% } %>
+                                                            </option>
+                                                            <% }); %>
+                                                                <% } else { %>
+                                                                    <option value="" disabled>Aucun pêcheur disponible
+                                                                    </option>
+                                                                    <% } %>
+                                                </select>
+                                                <small class="form-text text-muted">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    Le bateau sera assigné au pêcheur sélectionné
+                                                </small>
+                                            </div>
+                                            <% } %>
+                                                <div class="mb-3">
+                                                    <label class="form-label">ID Dispositif (ESP32)</label>
+                                                    <input type="text" class="form-control" name="deviceId">
+                                                    <small class="form-text text-muted">Optionnel - ID du dispositif IoT
+                                                        embarqué</small>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Latitude Initiale</label>
+                                                        <input type="number" step="any" class="form-control"
+                                                            name="latitude" placeholder="ex: 9.52" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Longitude Initiale</label>
+                                                        <input type="number" step="any" class="form-control"
+                                                            name="longitude" placeholder="ex: -13.68" required>
+                                                    </div>
+                                                </div>
+                                                <small class="form-text text-muted d-block mb-3">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    Ces coordonnées seront utilisées comme position de départ du bateau.
+                                                </small>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">
+                                            <%= locals.userRole==='pecheur' ? 'Soumettre la demande' : 'Ajouter' %>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modifier Position (Modal) -->
+                    <div class="modal fade" id="editPositionModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill me-2"></i>Modifier la Position
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="editPositionForm">
+                                    <input type="hidden" name="boatId">
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Nouvelle Latitude</label>
+                                                <input type="number" step="any" class="form-control" name="latitude"
+                                                    required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Nouvelle Longitude</label>
+                                                <input type="number" step="any" class="form-control" name="longitude"
+                                                    required>
+                                            </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Latitude Initiale</label>
-                                                <input type="number" step="any" class="form-control" name="latitude"
-                                                    placeholder="ex: 9.52">
+                                                <label class="form-label">Vitesse (km/h)</label>
+                                                <input type="number" step="0.1" class="form-control" name="speed"
+                                                    placeholder="0.0">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Longitude Initiale</label>
-                                                <input type="number" step="any" class="form-control" name="longitude"
-                                                    placeholder="ex: -13.68">
+                                                <label class="form-label">Cap (degrés)</label>
+                                                <input type="number" step="1" class="form-control" name="heading"
+                                                    placeholder="0" min="0" max="360">
                                             </div>
                                         </div>
-                                        <small class="form-text text-muted d-block mb-3">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            Ces coordonnées seront utilisées comme position de départ du bateau.
-                                        </small>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Cette mise à jour créera un nouveau point dans l'historique GPS.
+                                        </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary"
                                             data-bs-dismiss="modal">Annuler</button>
-                                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                                        <button type="submit" class="btn btn-warning">Mettre à jour</button>
                                     </div>
                                 </form>
                             </div>
@@ -209,8 +267,12 @@
                 }
 
                 listContainer.innerHTML = boats.map(boat => {
-                    const statusClass = boat.status === 'active' ? 'success' : 'secondary';
+                    const statusClass = boat.status === 'active' ? 'success' :
+                        (boat.status === 'pending' ? 'warning' : 'secondary');
+                    const statusLabel = boat.status === 'active' ? 'ACTIF' :
+                        (boat.status === 'pending' ? 'EN ATTENTE' : boat.status.toUpperCase());
                     const hasPosition = boat.lastPosition;
+                    const isAdmin = '<%= locals.userRole === "admin" %>' === 'true';
 
                     return `
         <div class="card mb-3 border-0 shadow-sm">
@@ -218,9 +280,14 @@
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <h6 class="mb-1">${boat.name}</h6>
-                <small class="text-muted">${boat.registration_number || 'N/A'}</small>
+                <small class="text-muted d-block">${boat.registration_number || 'N/A'}</small>
+                ${isAdmin ? `<small class="text-primary">Proprio: ${boat.owner_name || 'N/A'}</small>` : ''}
               </div>
-              <span class="badge bg-${statusClass}">${boat.status}</span>
+              <div class="d-flex flex-column align-items-end">
+                <span class="badge bg-${statusClass} text-${statusClass === 'warning' ? 'dark' : 'white'}">${statusLabel}</span>
+                ${boat.lastPosition && (new Date() - new Date(boat.lastPosition.created_at) < 5 * 60 * 1000) ?
+                            `<span class="badge bg-danger mt-1 animate-pulse" title="Signal IoT actif"><i class="bi bi-rss me-1"></i> LIVE</span>` : ''}
+              </div>
             </div>
             ${hasPosition ? `
               <div class="mt-2 small">
@@ -228,13 +295,26 @@
                 <div><i class="bi bi-speedometer text-info me-1"></i>${boat.lastPosition.speed || 0} km/h</div>
               </div>
             ` : '<div class="mt-2 small text-muted">Aucune position GPS</div>'}
-            <div class="mt-2">
+            <div class="mt-2 d-flex flex-wrap gap-1">
               <button class="btn btn-sm btn-outline-primary" onclick="centerOnBoat(${boat.id})">
                 <i class="bi bi-crosshair"></i> Centrer
               </button>
               <button class="btn btn-sm btn-outline-info" onclick="showBoatDetails(${boat.id})">
                 <i class="bi bi-info-circle"></i> Détails
               </button>
+              ${isAdmin ? `
+                <button class="btn btn-sm btn-outline-warning" onclick="openEditPositionModal(${boat.id})">
+                  <i class="bi bi-geo-alt"></i> Position
+                </button>
+              ` : ''}
+              ${isAdmin && boat.status === 'pending' ? `
+                <button class="btn btn-sm btn-success" onclick="approveBoat(${boat.id})">
+                  <i class="bi bi-check-lg"></i> Valider
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="rejectBoat(${boat.id})">
+                  <i class="bi bi-x-lg"></i> Rejeter
+                </button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -301,9 +381,85 @@
                 new bootstrap.Modal(document.getElementById('boatDetailsModal')).show();
             }
 
+            async function approveBoat(id) {
+                if (!confirm("Voulez-vous vraiment approuver ce bateau ?")) return;
+                try {
+                    const response = await fetch(`/api/boats/${id}/approve`, { method: 'PUT' });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert(data.message);
+                        loadBoats();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            }
+
+            async function rejectBoat(id) {
+                if (!confirm("Voulez-vous vraiment rejeter cette demande ? Le bateau sera supprimé.")) return;
+                try {
+                    const response = await fetch(`/api/boats/${id}/reject`, { method: 'PUT' });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert(data.message);
+                        loadBoats();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            }
+
             function refreshBoats() {
                 loadBoats();
             }
+
+            function openEditPositionModal(id) {
+                const boat = boats.find(b => b.id === id);
+                if (!boat) return;
+
+                const form = document.getElementById('editPositionForm');
+                form.boatId.value = id;
+                form.latitude.value = boat.lastPosition ? boat.lastPosition.latitude : '';
+                form.longitude.value = boat.lastPosition ? boat.lastPosition.longitude : '';
+                form.speed.value = boat.lastPosition ? boat.lastPosition.speed : '0';
+                form.heading.value = boat.lastPosition ? boat.lastPosition.heading : '0';
+
+                new bootstrap.Modal(document.getElementById('editPositionModal')).show();
+            }
+
+            document.getElementById('editPositionForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const id = this.boatId.value;
+                const data = {
+                    latitude: this.latitude.value,
+                    longitude: this.longitude.value,
+                    speed: this.speed.value,
+                    heading: this.heading.value
+                };
+
+                try {
+                    const response = await fetch(`/api/boats/${id}/position/manual`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('editPositionModal')).hide();
+                        loadBoats();
+                        alert(result.message);
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                }
+            });
 
             // Formulaire d'ajout de bateau
             document.getElementById('addBoatForm').addEventListener('submit', async function (e) {

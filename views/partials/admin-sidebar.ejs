@@ -36,102 +36,122 @@
                 <span>Mon Profil</span>
             </a>
 
-            <% if (['admin', 'technicien' , 'observateur' ].includes(locals.userRole)) { %>
-                <!-- Surveillance en temps réel (Admin/Technicien/Observateur) -->
+            <% if (['admin', 'technicien' , 'observateur' , 'pecheur' ].includes(locals.userRole)) { %>
+                <!-- Surveillance ou Aide (Admin/Technicien/Observateur/Pecheur) -->
                 <div class="sidebar-section-title">
                     <i class="bi bi-broadcast me-1"></i>
-                    SURVEILLANCE EN TEMPS RÉEL
+                    <%= locals.userRole==='pecheur' ? 'ASSISTANCE & IA' : 'SURVEILLANCE EN TEMPS RÉEL' %>
                 </div>
-                <a href="/admin/ia-qualite"
-                    class="sidebar-menu-item <%= currentPath === '/admin/ia-qualite' ? 'active' : '' %>"
-                    title="Surveillance de la qualité de l'eau">
-                    <i class="bi bi-droplet-fill"></i>
-                    <span>Qualité de l'Eau</span>
-                </a>
-                <a href="/admin/dispositifs"
-                    class="sidebar-menu-item <%= currentPath === '/admin/dispositifs' ? 'active' : '' %>"
-                    title="Gestion des dispositifs IoT">
-                    <i class="bi bi-cpu-fill"></i>
-                    <span>Dispositifs IoT</span>
-                </a>
-                <% } %>
-
-                    <a href="/admin/gps-tracking"
-                        class="sidebar-menu-item <%= currentPath === '/admin/gps-tracking' ? 'active' : '' %>"
-                        title="Suivi GPS des bateaux">
-                        <i class="bi bi-geo-alt-fill"></i>
-                        <span>Suivi GPS</span>
-                        <% if (typeof locals.activeBoatsCount !=='undefined' && locals.activeBoatsCount> 0) { %>
-                            <span class="sidebar-badge" title="<%= locals.activeBoatsCount %> bateau(x) actif(s)">
-                                <%= locals.activeBoatsCount %>
-                            </span>
-                            <% } %>
+                <% if (locals.userRole !=='pecheur' ) { %>
+                    <a href="/admin/ia-qualite"
+                        class="sidebar-menu-item <%= currentPath === '/admin/ia-qualite' ? 'active' : '' %>"
+                        title="Surveillance de la qualité de l'eau">
+                        <i class="bi bi-droplet-fill"></i>
+                        <span>Qualité de l'Eau</span>
                     </a>
+                    <% } %>
 
-                    <% if (['admin', 'pecheur' ].includes(locals.userRole)) { %>
-
-                        <a href="/admin/alertes"
-                            class="sidebar-menu-item <%= currentPath === '/admin/alertes' ? 'active' : '' %>"
-                            title="Alertes actives du système">
-                            <i class="bi bi-bell-fill"></i>
-                            <span>Alertes Actives</span>
-                            <% if (typeof locals.alertsCount !=='undefined' && locals.alertsCount> 0) { %>
-                                <span class="sidebar-badge sidebar-badge-danger"
-                                    title="<%= locals.alertsCount %> alerte(s)">
-                                    <%= locals.alertsCount %>
-                                </span>
-                                <% } %>
-                        </a>
-                        <% } %>
-
-                            <!-- Gestion des ressources -->
-                            <div class="sidebar-section-title">
-                                <i class="bi bi-layers-fill me-1"></i>
-                                GESTION DES RESSOURCES
-                            </div>
-                            <a href="/admin/zones"
-                                class="sidebar-menu-item <%= currentPath === '/admin/zones' ? 'active' : '' %>"
-                                title="Gestion des zones de pêche">
-                                <i class="bi bi-map-fill"></i>
-                                <span>Zones de Pêche</span>
+                        <% if (locals.userRole==='pecheur' ) { %>
+                            <!-- Bouton SOS pour les pêcheurs -->
+                            <a href="#" class="sidebar-menu-item sidebar-menu-item-sos" onclick="triggerSOS()">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>URGENCE SOS</span>
                             </a>
-                            <% if (locals.userRole==='admin' ) { %>
-                                <!-- Ancienne place, section supprimée -->
-                                <% } %>
+                            <% } %>
 
-                                    <!-- Administration (Admin Only) -->
-                                    <% if (locals.userRole==='admin' ) { %>
-                                        <div class="sidebar-section-title">
-                                            <i class="bi bi-shield-fill-check me-1"></i>
-                                            ADMINISTRATION
-                                        </div>
-                                        <a href="/admin/utilisateurs"
-                                            class="sidebar-menu-item <%= currentPath === '/admin/utilisateurs' ? 'active' : '' %>"
-                                            title="Gestion des utilisateurs">
-                                            <i class="bi bi-people-fill"></i>
-                                            <span>Utilisateurs</span>
-                                        </a>
-                                        <a href="/admin/parametres"
-                                            class="sidebar-menu-item <%= currentPath === '/admin/parametres' ? 'active' : '' %>"
-                                            title="Paramètres du système">
-                                            <i class="bi bi-gear-fill"></i>
-                                            <span>Paramètres Système</span>
-                                        </a>
+                                <% if (['admin', 'technicien' , 'observateur' ].includes(locals.userRole)) { %>
+                                    <a href="/admin/dispositifs"
+                                        class="sidebar-menu-item <%= currentPath === '/admin/dispositifs' ? 'active' : '' %>"
+                                        title="Gestion des dispositifs IoT">
+                                        <i class="bi bi-cpu-fill"></i>
+                                        <span>Dispositifs IoT</span>
+                                    </a>
+                                    <% } %>
                                         <% } %>
 
-                                            <!-- Rapports & Historique -->
-                                            <% if (['admin', 'technicien' ].includes(locals.userRole)) { %>
-                                                <div class="sidebar-section-title">
-                                                    <i class="bi bi-file-earmark-bar-graph me-1"></i>
-                                                    RAPPORTS & HISTORIQUE
-                                                </div>
-                                                <a href="/admin/historique"
-                                                    class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>"
-                                                    title="Historique des données">
-                                                    <i class="bi bi-clock-history"></i>
-                                                    <span>Historique des Données</span>
+                                            <a href="/admin/gps-tracking"
+                                                class="sidebar-menu-item <%= currentPath === '/admin/gps-tracking' ? 'active' : '' %>"
+                                                title="Suivi GPS des bateaux">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                                <span>Suivi GPS</span>
+                                                <% if (typeof locals.activeBoatsCount !=='undefined' &&
+                                                    locals.activeBoatsCount>
+                                                    0) { %>
+                                                    <span class="sidebar-badge"
+                                                        title="<%= locals.activeBoatsCount %> bateau(x) actif(s)">
+                                                        <%= locals.activeBoatsCount %>
+                                                    </span>
+                                                    <% } %>
+                                            </a>
+
+                                            <% if (['admin', 'pecheur' ].includes(locals.userRole)) { %>
+
+                                                <a href="/admin/alertes"
+                                                    class="sidebar-menu-item <%= currentPath === '/admin/alertes' ? 'active' : '' %>"
+                                                    title="Alertes actives du système">
+                                                    <i class="bi bi-bell-fill"></i>
+                                                    <span>Alertes Actives</span>
+                                                    <% if (typeof locals.alertsCount !=='undefined' &&
+                                                        locals.alertsCount> 0) {
+                                                        %>
+                                                        <span class="sidebar-badge sidebar-badge-danger"
+                                                            title="<%= locals.alertsCount %> alerte(s)">
+                                                            <%= locals.alertsCount %>
+                                                        </span>
+                                                        <% } %>
                                                 </a>
                                                 <% } %>
+
+                                                    <!-- Gestion des ressources -->
+                                                    <div class="sidebar-section-title">
+                                                        <i class="bi bi-layers-fill me-1"></i>
+                                                        GESTION DES RESSOURCES
+                                                    </div>
+                                                    <a href="/admin/zones"
+                                                        class="sidebar-menu-item <%= currentPath === '/admin/zones' ? 'active' : '' %>"
+                                                        title="Gestion des zones de pêche">
+                                                        <i class="bi bi-map-fill"></i>
+                                                        <span>Zones de Pêche</span>
+                                                    </a>
+                                                    <% if (locals.userRole==='admin' ) { %>
+                                                        <!-- Ancienne place, section supprimée -->
+                                                        <% } %>
+
+                                                            <!-- Administration (Admin Only) -->
+                                                            <% if (locals.userRole==='admin' ) { %>
+                                                                <div class="sidebar-section-title">
+                                                                    <i class="bi bi-shield-fill-check me-1"></i>
+                                                                    ADMINISTRATION
+                                                                </div>
+                                                                <a href="/admin/utilisateurs"
+                                                                    class="sidebar-menu-item <%= currentPath === '/admin/utilisateurs' ? 'active' : '' %>"
+                                                                    title="Gestion des utilisateurs">
+                                                                    <i class="bi bi-people-fill"></i>
+                                                                    <span>Utilisateurs</span>
+                                                                </a>
+                                                                <a href="/admin/parametres"
+                                                                    class="sidebar-menu-item <%= currentPath === '/admin/parametres' ? 'active' : '' %>"
+                                                                    title="Paramètres du système">
+                                                                    <i class="bi bi-gear-fill"></i>
+                                                                    <span>Paramètres Système</span>
+                                                                </a>
+                                                                <% } %>
+
+                                                                    <!-- Rapports & Historique -->
+                                                                    <% if (['admin', 'technicien'
+                                                                        ].includes(locals.userRole)) { %>
+                                                                        <div class="sidebar-section-title">
+                                                                            <i
+                                                                                class="bi bi-file-earmark-bar-graph me-1"></i>
+                                                                            RAPPORTS & HISTORIQUE
+                                                                        </div>
+                                                                        <a href="/admin/historique"
+                                                                            class="sidebar-menu-item <%= currentPath === '/admin/historique' ? 'active' : '' %>"
+                                                                            title="Historique des données">
+                                                                            <i class="bi bi-clock-history"></i>
+                                                                            <span>Historique des Données</span>
+                                                                        </a>
+                                                                        <% } %>
         </nav>
     </aside>
 
@@ -167,4 +187,31 @@
                 });
             });
         });
+
+        // Fonction SOS pour les pêcheurs
+        function triggerSOS() {
+            if (confirm("🚨 APPEL D'URGENCE SOS 🚨\n\nVoulez-vous envoyer un signal de détresse immédiat aux autorités et aux secours ?")) {
+                fetch('/api/alerts/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'sos',
+                        severity: 'critical',
+                        message: '🆘 SOS MANUEL : Le pêcheur a déclenché une alerte de détresse via son interface.'
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("✅ Signal SOS envoyé ! Gardez votre calme, les secours ont été prévenus.");
+                        } else {
+                            alert("❌ Erreur lors de l'envoi du signal : " + data.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Erreur SOS:', err);
+                        alert("❌ Erreur de connexion au serveur.");
+                    });
+            }
+        }
     </script>

@@ -130,8 +130,10 @@
                                         <div class="card-body">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div>
-                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">pH Moyen
-                                                        (Cloud)</p>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">
+                                                        <%= locals.userRole==='pecheur' ? 'Qualité de l\' Eau'
+                                                            : 'pH Moyen (Cloud)' %>
+                                                    </p>
                                                     <h3 class="mb-0 fw-bold text-dark" id="kpi-ph">--</h3>
                                                     <small id="kpi-ph-status" class="text-muted"><i
                                                             class="bi bi-activity"></i>
@@ -151,7 +153,9 @@
                                         <div class="card-body">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div>
-                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">Température
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">
+                                                        <%= locals.userRole==='pecheur' ? 'Température Mer'
+                                                            : 'Température' %>
                                                     </p>
                                                     <h3 class="mb-0 fw-bold text-dark" id="kpi-temp">--°C</h3>
                                                     <small class="text-success fw-medium"><i
@@ -172,8 +176,10 @@
                                         <div class="card-body">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div>
-                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">Alertes
-                                                        Actives</p>
+                                                    <p class="text-muted mb-1 small text-uppercase fw-bold">
+                                                        <%= locals.userRole==='pecheur' ? 'Infos Sécurité'
+                                                            : 'Alertes Actives' %>
+                                                    </p>
                                                     <h3 class="mb-0 fw-bold text-dark" id="kpi-alerts">0</h3>
                                                     <small class="text-muted"><i class="bi bi-shield-check"></i> Aucune
                                                         urgence</small>
@@ -194,7 +200,10 @@
                                     <div class="card border-0 shadow-sm h-100">
                                         <div class="card-header bg-white border-0 py-3">
                                             <h5 class="mb-0 fw-bold text-dark"><i
-                                                    class="bi bi-map me-2 text-primary"></i>Positions des Bateaux</h5>
+                                                    class="bi bi-map me-2 text-primary"></i>
+                                                <%= locals.userRole==='pecheur' ? 'Localisation de votre Flotte'
+                                                    : 'Positions des Bateaux' %>
+                                            </h5>
                                         </div>
                                         <div class="card-body p-0">
                                             <div id="dashboard-map" style="height: 400px; width: 100%;"></div>

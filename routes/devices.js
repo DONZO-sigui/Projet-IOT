@@ -14,6 +14,7 @@ router.get('/all', deviceController.getAllDevices);
 router.get('/:id', deviceController.getDeviceDetails);
 router.post('/', authMiddleware.authorize(['admin']), deviceController.createDevice);
 router.put('/:id/config', authMiddleware.authorize(['admin', 'technicien']), deviceController.updateConfig);
+router.put('/:id', authMiddleware.authorize(['admin', 'technicien']), deviceController.updateDevice);
 router.post('/:id/action', authMiddleware.authorize(['admin', 'technicien']), deviceController.deviceAction);
 
 module.exports = router;

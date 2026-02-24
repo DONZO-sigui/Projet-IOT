@@ -19,7 +19,7 @@ class Boat {
         registration_number VARCHAR(50) UNIQUE,
         owner_id INTEGER,
         device_id VARCHAR(100),
-        status VARCHAR(20) DEFAULT 'active',
+        status VARCHAR(20) DEFAULT 'pending',
         max_distance_from_port INTEGER DEFAULT 50000,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,15 +43,15 @@ class Boat {
      * @param {string} deviceId - ID du dispositif IoT (ESP32)
      * @returns {Promise<Object>} Le bateau créé
      */
-    static async create(name, registrationNumber, ownerId, deviceId) {
+    static async create(name, registrationNumber, ownerId, deviceId, status = 'pending') {
         const sql = `
-      INSERT INTO boats (name, registration_number, owner_id, device_id)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO boats (name, registration_number, owner_id, device_id, status)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
         try {
-            const result = await pool.query(sql, [name, registrationNumber, ownerId, deviceId]);
+            const result = await pool.query(sql, [name, registrationNumber, ownerId, deviceId, status]);
             return result.rows[0];
         } catch (err) {
             throw err;
@@ -110,6 +110,22 @@ class Boat {
         try {
             const result = await pool.query(sql, [ownerId]);
             return result.rows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Trouver un bateau par l'ID de son dispositif IoT
+     * @param {string} deviceId - ID du dispositif (ex: ESP32-001)
+     * @returns {Promise<Object>} Le bateau trouvé
+     */
+    static async findByDeviceId(deviceId) {
+        if (!deviceId) return null;
+        const sql = `SELECT * FROM boats WHERE device_id = $1`;
+        try {
+            const result = await pool.query(sql, [deviceId]);
+            return result.rows[0];
         } catch (err) {
             throw err;
         }
@@ -241,6 +257,7 @@ class Boat {
             SELECT 
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE status = 'active') as active,
+                COUNT(*) FILTER (WHERE status = 'pending') as pending,
                 COUNT(*) FILTER (WHERE status = 'maintenance') as maintenance,
                 COUNT(*) FILTER (WHERE status = 'inactive') as inactive
             FROM boats
@@ -264,6 +281,7 @@ class Boat {
             SELECT 
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE status = 'active') as active,
+                COUNT(*) FILTER (WHERE status = 'pending') as pending,
                 COUNT(*) FILTER (WHERE status = 'maintenance') as maintenance,
                 COUNT(*) FILTER (WHERE status = 'inactive') as inactive
             FROM boats
