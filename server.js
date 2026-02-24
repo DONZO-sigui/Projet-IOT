@@ -98,6 +98,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/thingsboard', require('./routes/thingsboard'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/ai', require('./routes/ai')); // Nouvel assistant IA
 app.use('/test', require('./routes/test')); // Route temporaire de debug
 
 // API Historique GPS
